@@ -1,0 +1,219 @@
+<!doctype html>
+<html lang="tr">
+<head>
+  <meta charset="utf-8" />
+  <title>HelpNest · Yeni Talep</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" />
+  <style>
+    body{background:#f6f7fb}
+    .select-card{border:1px solid #dee2e6;border-radius:.6rem;padding:14px;cursor:pointer;background:#fff}
+    .select-card:hover{border-color:#0d6efd}
+    .select-card.selected{border-color:#0d6efd;box-shadow:0 0 0 .2rem rgba(13,110,253,.15)}
+    .file-chip{display:inline-flex;gap:8px;align-items:center;background:#f1f3f5;border-radius:999px;padding:6px 10px}
+    .file-chip button{border:0;background:transparent}
+  </style>
+</head>
+<body>
+  <nav class="navbar bg-dark navbar-dark">
+    <div class="container-fluid">
+      <a class="navbar-brand" href="/user.html">← HelpNest · Yeni Talep</a>
+      <div class="d-flex align-items-center gap-2">
+        <span class="small opacity-75 text-white" id="userInfo"></span>
+        <a class="btn btn-outline-light btn-sm" href="/user.html">Panel</a>
+      </div>
+    </div>
+  </nav>
+
+  <main class="container py-4">
+    <div class="card shadow-sm">
+      <div class="card-body">
+        <h5 class="card-title mb-3">Yeni Talep</h5>
+        <div id="alert" class="alert d-none" role="alert"></div>
+
+        <form id="form" novalidate>
+          <div class="mb-3">
+            <label class="form-label">Konu <span class="text-danger">*</span></label>
+            <input id="subject" class="form-control" required placeholder="Örn. Office uygulamalarımda sorun yaşıyorum" />
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label">Açıklama</label>
+            <textarea id="description" class="form-control" rows="6"
+              placeholder="Uygulamaya girişte yetki hatası alıyorum..."></textarea>
+          </div>
+
+          <!-- Görsel -->
+          <div class="mb-3">
+            <label class="form-label">Görsel Ekle (JPEG, opsiyonel)</label>
+            <input id="file" type="file" accept="image/jpeg" class="form-control" />
+            <div id="fileInfo" class="mt-2"></div>
+          </div>
+
+          <!-- Kategori / Alt Kategori -->
+          <div class="mb-2"><strong>Kategori Seçimi:</strong></div>
+          <div id="catsRow" class="row g-3">
+            <div class="col-md-4">
+              <div class="select-card">
+                <div class="fw-semibold">Yükleniyor…</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="mt-3">
+            <button id="btn" class="btn btn-primary">Gönder</button>
+            <a href="/user.html" class="btn btn-outline-secondary">İptal</a>
+          </div>
+        </form>
+      </div>
+    </div>
+  </main>
+
+  <script>
+    const $ = s => document.querySelector(s);
+    let me = null;
+    let selectedCat = null;     // {id,name}
+    let selectedSub = null;     // {id,name}
+    let chosenFile = null;
+
+    // Oturum
+    (async () => {
+      const r = await fetch('/auth/me', { credentials:'include' });
+      if (!r.ok) return window.location.href='/login.html';
+      me = (await r.json()).user;
+      $('#userInfo').textContent = `${me.full_name} • ${me.email}`;
+      if (me.role !== 'end_user') { window.location.href='/dashboard.html'; return; }
+      await loadCategories();
+    })();
+
+    // Dosya seçimi
+    $('#file').addEventListener('change', e=>{
+      const f = e.target.files[0];
+      chosenFile = null;
+      $('#fileInfo').innerHTML = '';
+      if (!f) return;
+      if (f.type !== 'image/jpeg') {
+        showAlert('warning','Sadece JPEG dosyalar kabul edilir.');
+        e.target.value='';
+        return;
+      }
+      chosenFile = f;
+      const chip = document.createElement('div');
+      chip.className='file-chip mt-1';
+      chip.innerHTML = `<span>📎 ${f.name}</span><button type="button" title="Kaldır">🗑️</button>`;
+      chip.querySelector('button').onclick = ()=>{ chosenFile=null; $('#file').value=''; chip.remove(); };
+      $('#fileInfo').appendChild(chip);
+    });
+
+    // Kategoriler ve alt kategoriler
+    async function loadCategories(){
+      const r = await fetch('/tickets/categories', { credentials:'include' });
+      let cats = [];
+      if (r.ok) cats = await r.json();
+      renderCats(cats);
+    }
+
+    function renderCats(cats){
+      const row = $('#catsRow');
+      row.innerHTML = `
+        <div class="col-md-4">
+          <div class="select-card" id="catsCol"></div>
+        </div>
+        <div class="col-md-4">
+          <div class="select-card" id="subsCol">
+            <div class="fw-semibold">Alt kategori</div>
+            <div class="small text-muted">Önce kategori seçin</div>
+          </div>
+        </div>
+      `;
+
+      const col = $('#catsCol');
+      col.innerHTML = cats.length
+        ? cats.map(c=>`
+            <div class="select-card mb-2" data-type="cat" data-id="${c.id}" data-name="${escapeHtml(c.name)}">
+              ${escapeHtml(c.name)}
+            </div>`).join('')
+        : `<div class="small text-muted">Kategori bulunamadı (opsiyonel).</div>`;
+
+      col.querySelectorAll('[data-type="cat"]').forEach(el=>{
+        el.addEventListener('click', async ()=>{
+          col.querySelectorAll('[data-type="cat"]').forEach(x=>x.classList.remove('selected'));
+          el.classList.add('selected');
+          selectedCat = { id:Number(el.dataset.id), name:el.dataset.name };
+          selectedSub = null;
+          await loadSubcategories(selectedCat.id);
+        });
+      });
+    }
+
+    async function loadSubcategories(categoryId){
+      const holder = $('#subsCol');
+      holder.innerHTML = '<div class="small text-muted">Yükleniyor…</div>';
+      const r = await fetch('/tickets/subcategories?category_id='+categoryId, { credentials:'include' });
+      const list = r.ok ? await r.json() : [];
+      holder.className='select-card';
+      holder.innerHTML = list.length
+        ? list.map(sc=>`
+            <div class="select-card mb-2" data-type="sub" data-id="${sc.id}" data-name="${escapeHtml(sc.name)}">
+              ${escapeHtml(sc.name)}
+            </div>`).join('')
+        : '<div class="small text-muted">Alt kategori yok.</div>';
+
+      holder.querySelectorAll('[data-type="sub"]').forEach(el=>{
+        el.addEventListener('click', ()=>{
+          holder.querySelectorAll('[data-type="sub"]').forEach(x=>x.classList.remove('selected'));
+          el.classList.add('selected');
+          selectedSub = { id:Number(el.dataset.id), name:el.dataset.name };
+        });
+      });
+    }
+
+    // Form submit
+    $('#form').addEventListener('submit', async (e)=>{
+      e.preventDefault();
+      const subject = $('#subject').value.trim();
+      if (!subject) return showAlert('danger','Konu zorunludur.');
+
+      const payload = {
+        subject,
+        description: $('#description').value
+      };
+      if (selectedCat?.id) payload.category_id = selectedCat.id;
+      if (selectedSub?.id) payload.subcategory_id = selectedSub.id;
+
+      // 1) ticket
+      const r = await fetch('/tickets', {
+        method:'POST',
+        headers:{'Content-Type':'application/json'},
+        credentials:'include',
+        body: JSON.stringify(payload)
+      });
+      if (!r.ok){
+        const t = await r.text();
+        return showAlert('danger','Talep oluşturulamadı: '+t);
+      }
+      const { id } = await r.json();
+
+      // 2) jpeg varsa
+      if (chosenFile){
+        const fd = new FormData();
+        fd.append('file', chosenFile, chosenFile.name);
+        const ur = await fetch(`/files/ticket/${id}`, { method:'POST', credentials:'include', body:fd });
+        if (!ur.ok) showAlert('warning','Talep oluşturuldu, ancak görsel yüklenemedi.');
+      }
+
+      showAlert('success', `Talep #${id} oluşturuldu. Yönlendiriliyorsunuz…`);
+      setTimeout(()=> window.location.href='/user.html', 700);
+    });
+
+    function showAlert(type, msg){
+      const a = $('#alert');
+      a.className = 'alert alert-'+type;
+      a.textContent = msg;
+      a.classList.remove('d-none');
+    }
+
+    function escapeHtml(s){return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
+  </script>
+</body>
+</html>
