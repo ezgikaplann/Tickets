@@ -50,12 +50,24 @@
             <div id="fileInfo" class="mt-2"></div>
           </div>
 
-          <!-- Kategori / Alt Kategori -->
+          <!-- Kategori / Alt Kategori / Sorun Türü -->
           <div class="mb-2"><strong>Kategori Seçimi:</strong></div>
           <div id="catsRow" class="row g-3">
             <div class="col-md-4">
-              <div class="select-card">
-                <div class="fw-semibold">Yükleniyor…</div>
+              <div class="select-card" id="catsCol">
+                <div class="small text-muted">Yükleniyor…</div>
+              </div>
+            </div>
+            <div class="col-md-4">
+              <div class="select-card" id="subsCol">
+                <div class="fw-semibold">Alt kategori</div>
+                <div class="small text-muted">Önce kategori seçin</div>
+              </div>
+            </div>
+            <div class="col-md-4">
+              <div class="select-card" id="subsubsCol">
+                <div class="fw-semibold">Sorun Türü</div>
+                <div class="small text-muted">Önce alt kategori seçin</div>
               </div>
             </div>
           </div>
@@ -74,6 +86,7 @@
     let me = null;
     let selectedCat = null;     // {id,name}
     let selectedSub = null;     // {id,name}
+    let selectedSubSub = null;  // {id,name}
     let chosenFile = null;
 
     // Oturum
@@ -105,28 +118,15 @@
       $('#fileInfo').appendChild(chip);
     });
 
-    // Kategoriler ve alt kategoriler
+    // 1) Kategoriler
     async function loadCategories(){
       const r = await fetch('/tickets/categories', { credentials:'include' });
       let cats = [];
       if (r.ok) cats = await r.json();
-      renderCats(cats);
+      renderCategories(cats);
     }
 
-    function renderCats(cats){
-      const row = $('#catsRow');
-      row.innerHTML = `
-        <div class="col-md-4">
-          <div class="select-card" id="catsCol"></div>
-        </div>
-        <div class="col-md-4">
-          <div class="select-card" id="subsCol">
-            <div class="fw-semibold">Alt kategori</div>
-            <div class="small text-muted">Önce kategori seçin</div>
-          </div>
-        </div>
-      `;
-
+    function renderCategories(cats){
       const col = $('#catsCol');
       col.innerHTML = cats.length
         ? cats.map(c=>`
@@ -141,11 +141,14 @@
           el.classList.add('selected');
           selectedCat = { id:Number(el.dataset.id), name:el.dataset.name };
           selectedSub = null;
+          selectedSubSub = null;
           await loadSubcategories(selectedCat.id);
+          resetSubSubCol();
         });
       });
     }
 
+    // 2) Alt kategoriler
     async function loadSubcategories(categoryId){
       const holder = $('#subsCol');
       holder.innerHTML = '<div class="small text-muted">Yükleniyor…</div>';
@@ -160,10 +163,42 @@
         : '<div class="small text-muted">Alt kategori yok.</div>';
 
       holder.querySelectorAll('[data-type="sub"]').forEach(el=>{
-        el.addEventListener('click', ()=>{
+        el.addEventListener('click', async ()=>{
           holder.querySelectorAll('[data-type="sub"]').forEach(x=>x.classList.remove('selected'));
           el.classList.add('selected');
           selectedSub = { id:Number(el.dataset.id), name:el.dataset.name };
+          selectedSubSub = null;
+          await loadSubSubcategories(selectedSub.id);
+        });
+      });
+    }
+
+    function resetSubSubCol(){
+      const box = $('#subsubsCol');
+      box.innerHTML = `
+        <div class="fw-semibold">Sorun Türü</div>
+        <div class="small text-muted">Önce alt kategori seçin</div>
+      `;
+    }
+
+    // 3) Alt-alt kategoriler (Sorun Türü)
+    async function loadSubSubcategories(subcategoryId){
+      const box = $('#subsubsCol');
+      box.innerHTML = '<div class="small text-muted">Yükleniyor…</div>';
+      const r = await fetch('/tickets/subsubcategories?subcategory_id='+subcategoryId, { credentials:'include' });
+      const list = r.ok ? await r.json() : [];
+      box.innerHTML = list.length
+        ? list.map(ss=>`
+            <div class="select-card mb-2" data-type="subsub" data-id="${ss.id}" data-name="${escapeHtml(ss.name)}">
+              ${escapeHtml(ss.name)}
+            </div>`).join('')
+        : '<div class="small text-muted">Seçenek yok (opsiyonel).</div>';
+
+      box.querySelectorAll('[data-type="subsub"]').forEach(el=>{
+        el.addEventListener('click', ()=>{
+          box.querySelectorAll('[data-type="subsub"]').forEach(x=>x.classList.remove('selected'));
+          el.classList.add('selected');
+          selectedSubSub = { id:Number(el.dataset.id), name:el.dataset.name };
         });
       });
     }
@@ -178,8 +213,9 @@
         subject,
         description: $('#description').value
       };
-      if (selectedCat?.id) payload.category_id = selectedCat.id;
-      if (selectedSub?.id) payload.subcategory_id = selectedSub.id;
+      if (selectedCat?.id)    payload.category_id = selectedCat.id;
+      if (selectedSub?.id)    payload.subcategory_id = selectedSub.id;
+      if (selectedSubSub?.id) payload.sub_subcategory_id = selectedSubSub.id; // ⬅️ 3. seviye
 
       // 1) ticket
       const r = await fetch('/tickets', {
@@ -212,7 +248,6 @@
       a.textContent = msg;
       a.classList.remove('d-none');
     }
-
     function escapeHtml(s){return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
   </script>
 </body>

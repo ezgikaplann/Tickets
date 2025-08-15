@@ -152,4 +152,60 @@ router.get('/subcategories', auth(), async (req, res) => {
   res.json(rows);
 });
 
+// 3. seviye: alt-alt kategoriler
+router.get('/subsubcategories', auth(), async (req, res) => {
+  const { subcategory_id } = req.query;
+  if (!subcategory_id) return res.json([]);
+  const [rows] = await pool.execute(
+    'SELECT id, name FROM sub_subcategories WHERE is_active=1 AND subcategory_id=:sid ORDER BY name',
+    { sid: subcategory_id }
+  );
+  res.json(rows);
+});
+
+/**
+ * PUT /tickets/:id/assign
+ * Yalnızca DISPATCHER herhangi bir kullanıcıya atar
+ * Body: { assigned_to: number }
+ */
+router.put('/:id/assign', auth(['dispatcher']), async (req, res) => {
+  const { id } = req.params;
+  const { assigned_to } = req.body || {};
+
+  if (!assigned_to) return res.status(400).json({ error: 'assigned_to_required' });
+
+  // 1) Ticket var mı? kapalı mı?
+  const [[t]] = await pool.execute(`SELECT id, status FROM tickets WHERE id = :id`, { id });
+  if (!t) return res.status(404).json({ error: 'ticket_not_found' });
+  if (['RESOLVED','CLOSED','CANCELLED'].includes(t.status)) {
+    return res.status(409).json({ error: 'ticket_closed_or_resolved' });
+  }
+
+  // 2) Kullanıcı var mı ve atanabilir mi?
+  const [[u]] = await pool.execute(
+    `SELECT id, role, is_active FROM users WHERE id=:uid`,
+    { uid: assigned_to }
+  );
+  if (!u || !u.is_active) return res.status(400).json({ error: 'invalid_assignee' });
+  if (u.role === 'end_user') return res.status(400).json({ error: 'assignee_must_be_agent_or_admin' });
+
+  // 3) Güncelle + history
+  await pool.execute(
+    `UPDATE tickets
+        SET assigned_to = :uid,
+            status = 'ASSIGNED'
+      WHERE id = :id`,
+    { uid: assigned_to, id }
+  );
+
+  await pool.execute(
+    `INSERT INTO ticket_status_history
+        (ticket_id, old_status, new_status, changed_by, note)
+     VALUES (:id, :old, 'ASSIGNED', :by, 'Assigned by dispatcher')`,
+    { id, old: t.status, by: req.user.id }
+  );
+
+  res.json({ ok: true });
+});
+
 module.exports = router;
