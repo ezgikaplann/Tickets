@@ -208,4 +208,89 @@ router.put('/:id/assign', auth(['dispatcher']), async (req, res) => {
   res.json({ ok: true });
 });
 
+/**
+ * PUT /tickets/:id/unassign
+ * DISPATCHER atamayı iptal eder
+ */
+router.put('/:id/unassign', auth(['dispatcher']), async (req, res) => {
+  const { id } = req.params;
+
+  // 1) Ticket var mı? kapalı mı?
+  const [[t]] = await pool.execute(`SELECT id, status, assigned_to FROM tickets WHERE id = :id`, { id });
+  if (!t) return res.status(404).json({ error: 'ticket_not_found' });
+  if (['RESOLVED','CLOSED','CANCELLED'].includes(t.status)) {
+    return res.status(409).json({ error: 'ticket_closed_or_resolved' });
+  }
+  if (!t.assigned_to) return res.status(400).json({ error: 'ticket_not_assigned' });
+
+  // 2) Güncelle + history
+  await pool.execute(
+    `UPDATE tickets
+        SET assigned_to = NULL,
+            status = 'OPEN'
+      WHERE id = :id`,
+    { id }
+  );
+
+  await pool.execute(
+    `INSERT INTO ticket_status_history
+        (ticket_id, old_status, new_status, changed_by, note)
+     VALUES (:id, :old, 'OPEN', :by, 'Assignment cancelled by dispatcher')`,
+    { id, old: t.status, by: req.user.id }
+  );
+
+  res.json({ ok: true });
+});
+
+/**
+ * PUT /tickets/:id/cancel
+ * DISPATCHER talebi iptal eder
+ */
+router.put('/:id/cancel', auth(['dispatcher']), async (req, res) => {
+  console.log('Cancel endpoint çağrıldı:', req.params.id);
+  
+  const { id } = req.params;
+
+  try {
+    // 1) Ticket var mı?
+    const [[t]] = await pool.execute(`SELECT id, status FROM tickets WHERE id = :id`, { id });
+    console.log('Ticket bulundu:', t);
+    
+    if (!t) return res.status(404).json({ error: 'ticket_not_found' });
+    
+    // 2) Eğer zaten iptal edilmişse başarılı döndür
+    if (t.status === 'CANCELLED') {
+      return res.json({ ok: true, already_cancelled: true });
+    }
+    
+    // 3) Kapalı talepleri iptal etmeye izin ver
+    // if (['RESOLVED','CLOSED','CANCELLED'].includes(t.status)) {
+    //   return res.status(409).json({ error: 'ticket_closed_or_resolved' });
+    // }
+
+    // 4) Güncelle + history
+    await pool.execute(
+      `UPDATE tickets
+          SET assigned_to = NULL,
+              status = 'CANCELLED'
+        WHERE id = :id`,
+      { id }
+    );
+    console.log('Ticket güncellendi');
+
+    await pool.execute(
+      `INSERT INTO ticket_status_history
+          (ticket_id, old_status, new_status, changed_by, note)
+       VALUES (:id, :old, 'CANCELLED', :by, 'Cancelled by dispatcher')`,
+      { id, old: t.status, by: req.user.id }
+    );
+    console.log('History eklendi');
+
+    res.json({ ok: true });
+  } catch (error) {
+    console.error('Cancel endpoint hatası:', error);
+    res.status(500).json({ error: 'internal_server_error', message: error.message });
+  }
+});
+
 module.exports = router;

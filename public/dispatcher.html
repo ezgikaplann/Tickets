@@ -126,8 +126,33 @@
     }
 
     function card(t) {
-      // Dispatcher sayfası olduğu için butonu her zaman gösteriyoruz
+      // Eğer talep iptal edilmişse farklı görünüm
+      if (t.status === 'CANCELLED') {
+        return `
+        <div class="card">
+          <div class="card-body">
+            <div class="d-flex justify-content-between align-items-start gap-3">
+              <div class="flex-grow-1">
+                <strong>${escapeHtml(t.subject||'(Konu yok)')}</strong>
+                <div class="small text-muted">
+                  #${t.id} • ${new Date(t.created_at).toLocaleString('tr-TR')} • Öncelik: ${t.priority}
+                </div>
+                <div class="small mt-2">${escapeHtml((t.description||'').slice(0,180))}</div>
+              </div>
+              <div class="text-end">
+                <div><span class="badge bg-danger">İptal</span></div>
+                <div class="mt-2">
+                  <button class="btn btn-sm btn-danger" disabled>İptal</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>`;
+      }
+      
+      // Normal talepler için mevcut görünüm
       const assignBtn = `<button class="btn btn-sm btn-primary btn-assign" data-id="${t.id}">Atama Yap</button>`;
+      const cancelBtn = `<button class="btn btn-sm btn-warning btn-cancel ms-1" data-id="${t.id}">İptal Et</button>`;
 
       return `
       <div class="card">
@@ -143,7 +168,10 @@
             <div class="text-end">
               <div><span class="badge bg-secondary">${t.status}</span></div>
               ${t.assignee_name ? `<div class="small mt-1 text-muted">${escapeHtml(t.assignee_name)}</div>` : ''}
-              ${assignBtn}
+              <div class="mt-2">
+                ${assignBtn}
+                ${cancelBtn}
+              </div>
             </div>
           </div>
         </div>
@@ -159,12 +187,61 @@
 
     // Atama akışı
     function bindAssignEvents() {
-      $('#list').addEventListener('click', (e) => {
-        const btn = e.target.closest('.btn-assign');
-        if (!btn) return;
-        selectedTicketId = btn.getAttribute('data-id');
-        $('#assignWarn').classList.add('d-none');
-        bootstrap.Modal.getOrCreateInstance('#assignModal').show();
+      $('#list').addEventListener('click', async (e) => {
+        // Atama butonu kontrolü
+        const assignBtn = e.target.closest('.btn-assign');
+        if (assignBtn) {
+          selectedTicketId = assignBtn.getAttribute('data-id');
+          $('#assignWarn').classList.add('d-none');
+          bootstrap.Modal.getOrCreateInstance('#assignModal').show();
+          return;
+        }
+        
+        // İptal etme butonu kontrolü
+        const cancelBtn = e.target.closest('.btn-cancel');
+        if (cancelBtn) {
+          const ticketId = cancelBtn.getAttribute('data-id');
+          
+          if (!confirm('Bu talebi iptal etmek istediğinizden emin misiniz?')) return;
+          
+          try {
+            console.log('İptal isteği gönderiliyor:', ticketId); // Debug log
+            
+            const res = await fetch(`/tickets/${ticketId}/cancel`, {
+              method: 'PUT',
+              headers: { 'Content-Type': 'application/json' },
+              credentials: 'include'
+            });
+            
+            console.log('Response status:', res.status); // Debug log
+            
+            if (!res.ok) {
+              const err = await res.json().catch(()=>({}));
+              console.log('Error response:', err); // Debug log
+              throw new Error(err.error || `HTTP ${res.status}`);
+            }
+            
+            console.log('İptal başarılı'); // Debug log
+            
+            // Butonun rengini kırmızı yap ve "İptal" yaz
+            cancelBtn.className = 'btn btn-sm btn-danger btn-cancel ms-1';
+            cancelBtn.textContent = 'İptal';
+            cancelBtn.disabled = true;
+            
+            // Aynı karttaki "Atama Yap" butonunu bul ve gizle
+            const ticketCard = cancelBtn.closest('.card');
+            const assignBtnInCard = ticketCard.querySelector('.btn-assign');
+            if (assignBtnInCard) {
+              assignBtnInCard.style.display = 'none';
+            }
+            
+          } catch (err) {
+            console.error('İptal hatası:', err); // Debug log
+            alert('Talep iptal edilemedi: ' + err.message);
+          }
+          
+          return;
+        }
       });
 
       $('#btnDoAssign').addEventListener('click', async () => {
