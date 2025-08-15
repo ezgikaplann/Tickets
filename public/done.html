@@ -14,6 +14,8 @@
         <li class="nav-item"><a class="nav-link" href="/dashboard.html">Gelen Kutusu</a></li>
         <li class="nav-item"><a class="nav-link" href="/assigned.html">Bana Atananlar</a></li>
         <li class="nav-item"><a class="nav-link active" href="/done.html">Tamamlananlar</a></li>
+        <!-- Dispatcher için ek navigasyon -->
+        <li class="nav-item" id="dispatcherNav" style="display: none;"><a class="nav-link" href="/dispatcher.html">Dispatcher</a></li>
       </ul>
       <div class="d-flex align-items-center gap-2">
         <div class="small text-muted" id="userInfo"></div>
@@ -38,6 +40,12 @@
       if (!r.ok) return window.location.href = '/login.html';
       me = (await r.json()).user;
       $('#userInfo').textContent = `${me.full_name} • ${me.role}`;
+      
+      // Dispatcher rolü için ek navigasyon göster
+      if (me.role === 'dispatcher') {
+        $('#dispatcherNav').style.display = 'block';
+      }
+      
       await loadDone();
     })();
 

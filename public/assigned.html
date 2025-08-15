@@ -66,20 +66,57 @@
     }
 
     function card(t) {
+      // Sadece ASSIGNED durumundaki talepler için "Tamamlandı" butonu göster
+      const completeBtn = t.status === 'ASSIGNED' ? 
+        `<button class="btn btn-sm btn-success btn-complete" data-id="${t.id}">Tamamlandı</button>` : '';
+      
       return `
       <div class="card">
         <div class="card-body">
-          <div class="d-flex justify-content-between">
-            <strong>${escapeHtml(t.subject||'(Konu yok)')}</strong>
-            <span class="badge bg-info">${t.status}</span>
+          <div class="d-flex justify-content-between align-items-start gap-3">
+            <div class="flex-grow-1">
+              <strong>${escapeHtml(t.subject||'(Konu yok)')}</strong>
+              <div class="small text-muted">#${t.id} • ${new Date(t.created_at).toLocaleString('tr-TR')} • Öncelik: ${t.priority}</div>
+              <div class="small mt-2">${escapeHtml((t.description||'').slice(0,180))}</div>
+            </div>
+            <div class="text-end">
+              <span class="badge bg-info">${t.status}</span>
+              ${completeBtn}
+            </div>
           </div>
-          <div class="small text-muted">#${t.id} • ${new Date(t.created_at).toLocaleString('tr-TR')} • Öncelik: ${t.priority}</div>
-          <div class="small mt-2">${escapeHtml((t.description||'').slice(0,180))}</div>
         </div>
       </div>`;
     }
 
     function escapeHtml(s){return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
+
+    // Tamamlama işlevselliği
+    $('#list').addEventListener('click', async (e) => {
+      const btn = e.target.closest('.btn-complete');
+      if (!btn) return;
+      
+      const ticketId = btn.getAttribute('data-id');
+      if (!confirm('Bu talebi tamamlandı olarak işaretlemek istediğinizden emin misiniz?')) return;
+      
+      try {
+        const res = await fetch(`/tickets/${ticketId}/status`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          credentials: 'include',
+          body: JSON.stringify({ status: 'RESOLVED', note: 'Talep tamamlandı' })
+        });
+        
+        if (!res.ok) {
+          const err = await res.json().catch(()=>({}));
+          throw new Error(err.error || `HTTP ${res.status}`);
+        }
+        
+        // Liste yenile
+        await loadAssigned();
+      } catch (err) {
+        alert('Talep tamamlanamadı: ' + err.message);
+      }
+    });
   </script>
 </body>
 </html>
