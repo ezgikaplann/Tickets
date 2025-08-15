@@ -69,6 +69,19 @@
     async function loadInbox() {
       const q = $('#search').value.trim();
       const list = await fetchTickets(q ? { q } : {});
+      
+      // Basit öncelik sıralaması: HIGH -> MEDIUM -> LOW
+      list.sort((a, b) => {
+        const priorityOrder = { 'HIGH': 1, 'MEDIUM': 2, 'LOW': 3 };
+        
+        // Öncelik değerlerini al, null/undefined ise MEDIUM olarak kabul et
+        const aPriority = a.priority || 'MEDIUM';
+        const bPriority = b.priority || 'MEDIUM';
+        
+        // Önceliğe göre sırala
+        return priorityOrder[aPriority] - priorityOrder[bPriority];
+      });
+      
       render(list);
     }
 

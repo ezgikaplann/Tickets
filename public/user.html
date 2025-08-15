@@ -97,14 +97,30 @@
       // Dashboard ile aynı: tüm talepler
       allTickets = await fetchTickets(q ? { q } : {});
 
-      // Tüm Talepler
-      const allSorted = [...allTickets].sort((a,b)=> new Date(b.created_at) - new Date(a.created_at));
+      // Tüm Talepler - Basit öncelik sıralaması
+      const allSorted = [...allTickets].sort((a, b) => {
+        const priorityOrder = { 'HIGH': 1, 'MEDIUM': 2, 'LOW': 3 };
+        
+        const aPriority = a.priority || 'MEDIUM';
+        const bPriority = b.priority || 'MEDIUM';
+        
+        return priorityOrder[aPriority] - priorityOrder[bPriority];
+      });
+      
       render('#list-all', '#empty-all', allSorted);
 
-      // Benim Taleplerim
+      // Benim Taleplerim - Basit öncelik sıralaması
       const mine = allTickets
         .filter(t => t.created_by === me.id)
-        .sort((a,b)=> new Date(b.created_at) - new Date(a.created_at));
+        .sort((a, b) => {
+          const priorityOrder = { 'HIGH': 1, 'MEDIUM': 2, 'LOW': 3 };
+          
+          const aPriority = a.priority || 'MEDIUM';
+          const bPriority = b.priority || 'MEDIUM';
+          
+          return priorityOrder[aPriority] - priorityOrder[bPriority];
+        });
+      
       render('#list-mine', '#empty-mine', mine);
     }
 
