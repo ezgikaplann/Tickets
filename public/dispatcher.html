@@ -115,6 +115,27 @@
     async function loadInbox() {
       const q = $('#search').value.trim();
       const list = await fetchTickets(q ? { q } : {});
+      
+      // Önceliğe göre sırala: HIGH -> MEDIUM -> LOW, iptal edilenler en alta
+      const priorityOrder = { 'HIGH': 1, 'MEDIUM': 2, 'LOW': 3 };
+      list.sort((a, b) => {
+        // İptal edilen talepler her zaman en alta
+        if (a.status === 'CANCELLED' && b.status !== 'CANCELLED') return 1;
+        if (a.status !== 'CANCELLED' && b.status === 'CANCELLED') return -1;
+        
+        // İptal edilen talepler kendi aralarında tarihe göre sırala
+        if (a.status === 'CANCELLED' && b.status === 'CANCELLED') {
+          return new Date(b.created_at) - new Date(a.created_at);
+        }
+        
+        // Aktif talepler önceliğe göre sırala: HIGH -> MEDIUM -> LOW
+        const priorityDiff = priorityOrder[a.priority] - priorityOrder[b.priority];
+        if (priorityDiff !== 0) return priorityDiff;
+        
+        // Aynı öncelikteyse tarihe göre sırala (yeni önce)
+        return new Date(b.created_at) - new Date(a.created_at);
+      });
+      
       render(list);
     }
 
@@ -153,6 +174,15 @@
       // Normal talepler için mevcut görünüm
       const assignBtn = `<button class="btn btn-sm btn-primary btn-assign" data-id="${t.id}">Atama Yap</button>`;
       const cancelBtn = `<button class="btn btn-sm btn-warning btn-cancel ms-1" data-id="${t.id}">İptal Et</button>`;
+      
+      // Öncelik seçimi dropdown'ı - LOW, MEDIUM, HIGH
+      const prioritySelect = `
+        <select class="form-select form-select-sm priority-select" data-id="${t.id}" style="width: auto;">
+          <option value="LOW" ${t.priority === 'LOW' ? 'selected' : ''}>Low</option>
+          <option value="MEDIUM" ${t.priority === 'MEDIUM' ? 'selected' : ''}>Medium</option>
+          <option value="HIGH" ${t.priority === 'HIGH' ? 'selected' : ''}>High</option>
+        </select>
+      `;
 
       return `
       <div class="card">
@@ -161,12 +191,15 @@
             <div class="flex-grow-1">
               <strong>${escapeHtml(t.subject||'(Konu yok)')}</strong>
               <div class="small text-muted">
-                #${t.id} • ${new Date(t.created_at).toLocaleString('tr-TR')} • Öncelik: ${t.priority}
+                #${t.id} • ${new Date(t.created_at).toLocaleString('tr-TR')}
               </div>
               <div class="small mt-2">${escapeHtml((t.description||'').slice(0,180))}</div>
             </div>
             <div class="text-end">
-              <div><span class="badge bg-secondary">${t.status}</span></div>
+              <div class="mb-2">
+                <span class="badge bg-secondary">${t.status}</span>
+                ${prioritySelect}
+              </div>
               ${t.assignee_name ? `<div class="small mt-1 text-muted">${escapeHtml(t.assignee_name)}</div>` : ''}
               <div class="mt-2">
                 ${assignBtn}
@@ -241,6 +274,63 @@
           }
           
           return;
+        }
+      });
+
+      // Öncelik değişikliği için event listener
+      $('#list').addEventListener('change', async (e) => {
+        const prioritySelect = e.target.closest('.priority-select');
+        if (!prioritySelect) return;
+        
+        const ticketId = prioritySelect.getAttribute('data-id');
+        const newPriority = prioritySelect.value;
+        
+        console.log('Öncelik değişikliği tespit edildi:', { ticketId, newPriority });
+        
+        // Öncelik güncelleme
+        try {
+          console.log('Öncelik güncelleme isteği gönderiliyor...');
+          
+          const res = await fetch(`/tickets/${ticketId}/priority`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            credentials: 'include',
+            body: JSON.stringify({ priority: newPriority })
+          });
+          
+          console.log('Response status:', res.status);
+          
+          if (!res.ok) {
+            const errorText = await res.text();
+            console.log('Error response text:', errorText);
+            
+            let errorData;
+            try {
+              errorData = JSON.parse(errorText);
+            } catch {
+              errorData = { error: 'parse_error', message: errorText };
+            }
+            
+            console.log('Error data:', errorData);
+            throw new Error(errorData.message || `HTTP ${res.status}`);
+          }
+          
+          const successData = await res.json();
+          console.log('Success data:', successData);
+          console.log('Öncelik başarıyla güncellendi!');
+          
+          // Başarı mesajı göster
+          alert('Öncelik başarıyla güncellendi!');
+          
+          // Liste yenile
+          await loadInbox();
+          
+        } catch (err) {
+          console.error('Öncelik güncelleme hatası:', err);
+          alert('Öncelik güncellenemedi: ' + err.message);
+          
+          // Hata durumunda eski değere geri dön
+          await loadInbox();
         }
       });
 

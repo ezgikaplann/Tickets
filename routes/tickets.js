@@ -293,4 +293,79 @@ router.put('/:id/cancel', auth(['dispatcher']), async (req, res) => {
   }
 });
 
+/**
+ * GET /tickets/:id/priority
+ * Test için öncelik bilgisini getir
+ */
+router.get('/:id/priority', auth(['dispatcher']), async (req, res) => {
+  const { id } = req.params;
+  
+  try {
+    const [[t]] = await pool.execute(`SELECT id, priority FROM tickets WHERE id = :id`, { id });
+    if (!t) return res.status(404).json({ error: 'ticket_not_found' });
+    
+    res.json({ id: t.id, priority: t.priority });
+  } catch (error) {
+    console.error('Priority get error:', error);
+    res.status(500).json({ error: 'internal_server_error', message: error.message });
+  }
+});
+
+/**
+ * PUT /tickets/:id/priority
+ * DISPATCHER talebin önceliğini günceller
+ */
+router.put('/:id/priority', auth(['dispatcher']), async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { priority } = req.body || {};
+
+    console.log('Priority update request received:', { id, priority });
+
+    // Öncelik değerlerini kontrol et - LOW, MEDIUM, HIGH
+    if (!['LOW', 'MEDIUM', 'HIGH'].includes(priority)) {
+      console.log('Invalid priority value:', priority);
+      return res.status(400).json({ error: 'invalid_priority', message: 'Geçersiz öncelik değeri' });
+    }
+
+    // Ticket'ın var olup olmadığını kontrol et
+    const [tickets] = await pool.execute('SELECT id FROM tickets WHERE id = ?', [id]);
+    
+    if (tickets.length === 0) {
+      console.log('Ticket not found:', id);
+      return res.status(404).json({ error: 'ticket_not_found', message: 'Talep bulunamadı' });
+    }
+
+    // Önceliği güncelle
+    const [updateResult] = await pool.execute(
+      'UPDATE tickets SET priority = ? WHERE id = ?',
+      [priority, id]
+    );
+
+    console.log('Update completed:', updateResult);
+
+    if (updateResult.affectedRows === 0) {
+      return res.status(500).json({ error: 'update_failed', message: 'Güncelleme başarısız' });
+    }
+
+    console.log('Priority updated successfully');
+    res.json({ 
+      ok: true, 
+      message: 'Öncelik başarıyla güncellendi',
+      ticket_id: id,
+      new_priority: priority 
+    });
+
+  } catch (error) {
+    console.error('Priority update error:', error);
+    console.error('Error stack:', error.stack);
+    
+    res.status(500).json({ 
+      error: 'internal_server_error', 
+      message: 'Sunucu hatası: ' + error.message,
+      details: process.env.NODE_ENV === 'development' ? error.stack : undefined
+    });
+  }
+});
+
 module.exports = router;
