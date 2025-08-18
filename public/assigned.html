@@ -99,6 +99,11 @@
       if (!confirm('Bu talebi tamamlandı olarak işaretlemek istediğinizden emin misiniz?')) return;
       
       try {
+        console.log('=== TALEP TAMAMLAMA BAŞLADI ===');
+        console.log('Ticket ID:', ticketId);
+        console.log('User ID:', me.id);
+        console.log('User Role:', me.role);
+        
         const res = await fetch(`/tickets/${ticketId}/status`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -106,14 +111,29 @@
           body: JSON.stringify({ status: 'RESOLVED', note: 'Talep tamamlandı' })
         });
         
+        console.log('Response status:', res.status);
+        
         if (!res.ok) {
           const err = await res.json().catch(()=>({}));
-          throw new Error(err.error || `HTTP ${res.status}`);
+          console.log('Error response:', err);
+          
+          if (res.status === 403) {
+            console.log('Permission denied details:', err.debug);
+            alert('Bu talebi tamamlama yetkiniz yok. Sadece kendi oluşturduğunuz veya size atanan talepleri tamamlayabilirsiniz.');
+          } else {
+            throw new Error(err.error || `HTTP ${res.status}`);
+          }
+          return;
         }
+        
+        // Başarılı
+        console.log('Talep başarıyla tamamlandı');
+        alert('Talep başarıyla tamamlandı!');
         
         // Liste yenile
         await loadAssigned();
       } catch (err) {
+        console.error('Talep tamamlama hatası:', err);
         alert('Talep tamamlanamadı: ' + err.message);
       }
     });

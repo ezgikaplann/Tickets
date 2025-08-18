@@ -96,34 +96,115 @@ router.post('/:id/assign_to_me', auth(['agent', 'admin']), async (req, res) => {
 
 /**
  * POST /tickets/:id/status
- * Agent/Admin bilet durum güncelleme
+ * Agent/Admin/End_user bilet durum güncelleme
  */
-router.post('/:id/status', auth(['agent', 'admin']), async (req, res) => {
+router.post('/:id/status', auth(['agent', 'admin', 'end_user']), async (req, res) => {
   const { id } = req.params;
   const { status, note = null } = req.body || {};
 
-  const [[old]] = await pool.execute(
-    'SELECT status FROM tickets WHERE id = :id',
-    { id }
-  );
-  if (!old) return res.status(404).json({ error: 'not_found' });
+  console.log('=== STATUS UPDATE BAŞLADI ===');
+  console.log('Ticket ID:', id);
+  console.log('New Status:', status);
+  console.log('User Role:', req.user.role);
+  console.log('User ID:', req.user.id);
 
-  await pool.execute(
-    `UPDATE tickets
-       SET status = :s,
-           closed_at = CASE WHEN :s IN ('RESOLVED','CLOSED','CANCELLED') THEN NOW() ELSE NULL END
-     WHERE id = :id`,
-    { s: status, id }
-  );
+  try {
+    // 1) Ticket var mı?
+    const [[ticket]] = await pool.execute(
+      'SELECT id, status, created_by, assigned_to FROM tickets WHERE id = ?',
+      [id]
+    );
+    
+    if (!ticket) {
+      console.log('Ticket not found');
+      return res.status(404).json({ error: 'ticket_not_found' });
+    }
 
-  await pool.execute(
-    `INSERT INTO ticket_status_history
-      (ticket_id, old_status, new_status, changed_by, note)
-     VALUES (:id, :old, :new, :uid, :note)`,
-    { id, old: old.status, new: status, uid: req.user.id, note }
-  );
+    console.log('Ticket details:', {
+      id: ticket.id,
+      status: ticket.status,
+      created_by: ticket.created_by,
+      assigned_to: ticket.assigned_to
+    });
 
-  res.json({ ok: true });
+    // 2) Yetki kontrolü - basitleştirildi
+    console.log('=== YETKİ KONTROLÜ ===');
+    console.log('User role:', req.user.role);
+    console.log('User ID:', req.user.id);
+    console.log('Ticket created_by:', ticket.created_by);
+    console.log('Ticket assigned_to:', ticket.assigned_to);
+    
+    let canUpdate = false;
+    let reason = '';
+
+    if (req.user.role === 'admin' || req.user.role === 'agent') {
+      canUpdate = true;
+      reason = 'Admin/Agent role';
+    } else if (req.user.role === 'end_user') {
+      // End_user kendi oluşturduğu VEYA kendine atanan talepleri güncelleyebilir
+      if (parseInt(ticket.created_by) === parseInt(req.user.id) || 
+          parseInt(ticket.assigned_to) === parseInt(req.user.id)) {
+        canUpdate = true;
+        reason = 'Own or assigned ticket';
+      } else {
+        canUpdate = false;
+        reason = 'Not own or assigned ticket';
+      }
+    }
+
+    console.log('Can update:', canUpdate);
+    console.log('Reason:', reason);
+
+    if (!canUpdate) {
+      console.log('Permission denied');
+      return res.status(403).json({ 
+        error: 'permission_denied', 
+        message: 'Bu talebi tamamlama yetkiniz yok. Sadece kendi oluşturduğunuz veya size atanan talepleri tamamlayabilirsiniz.',
+        debug: {
+          userRole: req.user.role,
+          userId: req.user.id,
+          ticketCreatedBy: ticket.created_by,
+          ticketAssignedTo: ticket.assigned_to,
+          reason: reason
+        }
+      });
+    }
+
+    console.log('Permission granted:', reason);
+
+    // 3) Durum güncelleme
+    await pool.execute(
+      `UPDATE tickets
+         SET status = ?,
+             closed_at = CASE WHEN ? IN ('RESOLVED','CLOSED','CANCELLED') THEN NOW() ELSE NULL END
+       WHERE id = ?`,
+      [status, status, id]
+    );
+
+    console.log('Status updated');
+
+    // 4) History kaydı
+    await pool.execute(
+      `INSERT INTO ticket_status_history
+          (ticket_id, old_status, new_status, changed_by, note)
+       VALUES (?, ?, ?, ?, ?)`,
+      [id, ticket.status, status, req.user.id, note]
+    );
+
+    console.log('History recorded');
+    console.log('=== STATUS UPDATE BAŞARILI ===');
+
+    res.json({ ok: true, message: 'Talep durumu başarıyla güncellendi' });
+  } catch (error) {
+    console.error('=== STATUS UPDATE HATASI ===');
+    console.error('Error:', error.message);
+    console.error('Stack:', error.stack);
+    
+    res.status(500).json({ 
+      error: 'internal_server_error', 
+      message: error.message 
+    });
+  }
 });
 
 /**
@@ -544,6 +625,44 @@ router.get('/:id/messages', auth(), async (req, res) => {
   } catch (error) {
     console.error('Messages get error:', error);
     res.status(500).json({ error: 'internal_server_error', message: error.message });
+  }
+});
+
+/**
+ * GET /tickets/:id/check-permission
+ * Test için yetki kontrolü
+ */
+router.get('/:id/check-permission', auth(['agent', 'admin', 'end_user']), async (req, res) => {
+  const { id } = req.params;
+
+  try {
+    const [[ticket]] = await pool.execute(
+      'SELECT id, status, created_by, assigned_to FROM tickets WHERE id = ?',
+      [id]
+    );
+    
+    if (!ticket) {
+      return res.status(404).json({ error: 'ticket_not_found' });
+    }
+
+    const canUpdate = 
+      req.user.role === 'admin' || 
+      req.user.role === 'agent' || 
+      parseInt(ticket.created_by) === parseInt(req.user.id) || 
+      parseInt(ticket.assigned_to) === parseInt(req.user.id);
+
+    res.json({
+      ticket: ticket,
+      user: {
+        id: req.user.id,
+        role: req.user.role
+      },
+      canUpdate: canUpdate,
+      reason: canUpdate ? 'Permission granted' : 'Permission denied'
+    });
+
+  } catch (error) {
+    res.status(500).json({ error: error.message });
   }
 });
 
