@@ -7,11 +7,16 @@ const cookieParser = require('cookie-parser');
 const cors = require('cors');
 const jwt = require('jsonwebtoken');
 
+// NEW: socket server için
+const http = require('http');
+const { Server } = require('socket.io');
+const cookie = require('cookie');
+
 const authRoutes    = require('./routes/auth');
 const ticketRoutes  = require('./routes/tickets');
 const messageRoutes = require('./routes/messages');
 const uploadRoutes  = require('./routes/uploads');
-const usersRoutes   = require('./routes/users'); // <<< kullanıcı listesi için
+const usersRoutes   = require('./routes/users');
 
 const app = express();
 
@@ -45,22 +50,52 @@ app.get('/dashboard.html',   guardPage('dashboard.html'));   // admin/agent/disp
 app.get('/assigned.html',    guardPage('assigned.html'));    // admin/agent
 app.get('/done.html',        guardPage('done.html'));        // admin/agent
 app.get('/user.html',        guardPage('user.html'));        // end_user
-app.get('/new-ticket.html',  guardPage('new-ticket.html'));  // end_user (talep oluştur)
-app.get('/dispatcher.html',  guardPage('dispatcher.html'));  // <<< DISPATCHER sayfasını da koru
+app.get('/new-ticket.html',  guardPage('new-ticket.html'));  // end_user
+app.get('/dispatcher.html',  guardPage('dispatcher.html'));  // dispatcher paneli
+app.get('/ticket.html',      guardPage('ticket.html'));      // talep detay + chat
 
 // ---- Statik dosyalar
-app.use('/uploads', express.static(path.join(__dirname, 'uploads'))); // görsel ekleri
-app.use(express.static(path.join(__dirname, 'public')));              // html/css/js
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+app.use(express.static(path.join(__dirname, 'public')));
 
 // ---- API router'ları
 app.use('/auth',     authRoutes);
 app.use('/tickets',  ticketRoutes);
 app.use('/messages', messageRoutes);
 app.use('/files',    uploadRoutes);
-app.use('/users',    usersRoutes); // <<< /users API
+app.use('/users',    usersRoutes);
 
 // Root → login
 app.get('/', (req, res) => res.redirect('/login.html'));
 
+// ---- Socket.IO
+const server = http.createServer(app);
+const io = new Server(server, {
+  cors: { origin: true, credentials: true },
+});
+app.set('io', io);
+
+// Socket kimlik doğrulama (JWT cookie ile)
+io.use((socket, next) => {
+  try {
+    const cookies = cookie.parse(socket.handshake.headers.cookie || '');
+    const token = cookies.auth;
+    if (!token) return next(new Error('unauthorized'));
+    const payload = jwt.verify(token, process.env.JWT_SECRET);
+    socket.user = payload; // { id, role, email }
+    next();
+  } catch (e) {
+    next(new Error('unauthorized'));
+  }
+});
+
+// Basit oda mantığı: ticket bazlı
+io.on('connection', (socket) => {
+  socket.on('room:join', ({ ticketId }) => {
+    if (!ticketId) return;
+    socket.join(`ticket:${ticketId}`);
+  });
+});
+
 const port = process.env.PORT || 4000;
-app.listen(port, () => console.log(`API listening on :${port}`));
+server.listen(port, () => console.log(`API listening on :${port}`));

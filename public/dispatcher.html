@@ -5,6 +5,44 @@
   <title>HelpNest · Dispatcher Paneli</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" />
+  <style>
+    .ticket-card:hover {
+      background-color: #f8f9fa;
+      transform: translateY(-1px);
+      transition: all 0.2s ease;
+    }
+    
+    .message-bubble {
+      word-wrap: break-word;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    }
+    
+    .message-header {
+      border-bottom: 1px solid rgba(255,255,255,0.2);
+      padding-bottom: 0.5rem;
+    }
+    
+    .message-content {
+      line-height: 1.4;
+    }
+    
+    .message-time {
+      font-size: 0.8rem;
+    }
+    
+    #messageList::-webkit-scrollbar {
+      width: 6px;
+    }
+    
+    #messageList::-webkit-scrollbar-track {
+      background: #f1f1f1;
+    }
+    
+    #messageList::-webkit-scrollbar-thumb {
+      background: #c1c1c1;
+      border-radius: 3px;
+    }
+  </style>
 </head>
 <body class="bg-light">
   <nav class="navbar bg-white border-bottom">
@@ -30,8 +68,64 @@
       <input id="search" class="form-control" placeholder="Konu/açıklama ara (Enter)..." />
     </div>
 
-    <div id="list" class="vstack gap-2"></div>
-    <div id="empty" class="text-muted d-none">Kayıt yok.</div>
+    <div class="row">
+      <!-- Sol taraf: Talep listesi -->
+      <div class="col-md-6">
+        <div id="list" class="vstack gap-2"></div>
+        <div id="empty" class="text-muted d-none">Kayıt yok.</div>
+      </div>
+      
+      <!-- Sağ taraf: Mesajlaşma paneli -->
+      <div class="col-md-6">
+        <div id="chatPanel" class="card" style="display: none;">
+          <div class="card-header d-flex justify-content-between align-items-center">
+            <h6 class="mb-0" id="chatTitle">Talep Detayı</h6>
+            <button type="button" class="btn-close" id="closeChat"></button>
+          </div>
+          
+          <div class="card-body p-0">
+            <!-- Talep bilgileri -->
+            <div class="p-3 border-bottom">
+              <h6 id="ticketSubject">Konu</h6>
+              <p class="small text-muted mb-2" id="ticketDescription">Açıklama</p>
+              <div class="row">
+                <div class="col-6">
+                  <small class="text-muted">Durum:</small><br>
+                  <span id="ticketStatus" class="badge bg-secondary">Durum</span>
+                </div>
+                <div class="col-6">
+                  <small class="text-muted">Öncelik:</small><br>
+                  <span id="ticketPriority" class="badge bg-warning">Öncelik</span>
+                </div>
+              </div>
+            </div>
+            
+            <!-- Mesaj listesi -->
+            <div id="messageList" class="p-3" style="height: 300px; overflow-y: auto;">
+              <div class="text-center text-muted">
+                <small>Henüz mesaj yok</small>
+              </div>
+            </div>
+            
+            <!-- Mesaj gönderme -->
+            <div class="p-3 border-top">
+              <div class="input-group">
+                <input type="text" class="form-control" id="messageInput" placeholder="Mesaj yazın..." />
+                <button class="btn btn-primary" type="button" id="sendMessage">
+                  <i class="bi bi-send"></i> Gönder
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <!-- Mesajlaşma paneli kapalıyken gösterilecek mesaj -->
+        <div id="noChatSelected" class="text-center text-muted py-5">
+          <i class="bi bi-chat-dots fs-1"></i>
+          <p class="mt-2">Mesajlaşmak için bir talep seçin</p>
+        </div>
+      </div>
+    </div>
   </main>
 
   <!-- Dispatcher için atama modalı -->
@@ -171,11 +265,11 @@
         </div>`;
       }
       
-      // Normal talepler için mevcut görünüm
+      // Normal talepler için mevcut görünüm + tıklanabilir
       const assignBtn = `<button class="btn btn-sm btn-primary btn-assign" data-id="${t.id}">Atama Yap</button>`;
       const cancelBtn = `<button class="btn btn-sm btn-warning btn-cancel ms-1" data-id="${t.id}">İptal Et</button>`;
       
-      // Öncelik seçimi dropdown'ı - LOW, MEDIUM, HIGH
+      // Öncelik seçimi dropdown'ı
       const prioritySelect = `
         <select class="form-select form-select-sm priority-select" data-id="${t.id}" style="width: auto;">
           <option value="LOW" ${t.priority === 'LOW' ? 'selected' : ''}>Low</option>
@@ -185,7 +279,7 @@
       `;
 
       return `
-      <div class="card">
+      <div class="card ticket-card" style="cursor: pointer;" onclick="selectTicket(${t.id})">
         <div class="card-body">
           <div class="d-flex justify-content-between align-items-start gap-3">
             <div class="flex-grow-1">
@@ -220,120 +314,6 @@
 
     // Atama akışı
     function bindAssignEvents() {
-      $('#list').addEventListener('click', async (e) => {
-        // Atama butonu kontrolü
-        const assignBtn = e.target.closest('.btn-assign');
-        if (assignBtn) {
-          selectedTicketId = assignBtn.getAttribute('data-id');
-          $('#assignWarn').classList.add('d-none');
-          bootstrap.Modal.getOrCreateInstance('#assignModal').show();
-          return;
-        }
-        
-        // İptal etme butonu kontrolü
-        const cancelBtn = e.target.closest('.btn-cancel');
-        if (cancelBtn) {
-          const ticketId = cancelBtn.getAttribute('data-id');
-          
-          if (!confirm('Bu talebi iptal etmek istediğinizden emin misiniz?')) return;
-          
-          try {
-            console.log('İptal isteği gönderiliyor:', ticketId); // Debug log
-            
-            const res = await fetch(`/tickets/${ticketId}/cancel`, {
-              method: 'PUT',
-              headers: { 'Content-Type': 'application/json' },
-              credentials: 'include'
-            });
-            
-            console.log('Response status:', res.status); // Debug log
-            
-            if (!res.ok) {
-              const err = await res.json().catch(()=>({}));
-              console.log('Error response:', err); // Debug log
-              throw new Error(err.error || `HTTP ${res.status}`);
-            }
-            
-            console.log('İptal başarılı'); // Debug log
-            
-            // Butonun rengini kırmızı yap ve "İptal" yaz
-            cancelBtn.className = 'btn btn-sm btn-danger btn-cancel ms-1';
-            cancelBtn.textContent = 'İptal';
-            cancelBtn.disabled = true;
-            
-            // Aynı karttaki "Atama Yap" butonunu bul ve gizle
-            const ticketCard = cancelBtn.closest('.card');
-            const assignBtnInCard = ticketCard.querySelector('.btn-assign');
-            if (assignBtnInCard) {
-              assignBtnInCard.style.display = 'none';
-            }
-            
-          } catch (err) {
-            console.error('İptal hatası:', err); // Debug log
-            alert('Talep iptal edilemedi: ' + err.message);
-          }
-          
-          return;
-        }
-      });
-
-      // Öncelik değişikliği için event listener
-      $('#list').addEventListener('change', async (e) => {
-        const prioritySelect = e.target.closest('.priority-select');
-        if (!prioritySelect) return;
-        
-        const ticketId = prioritySelect.getAttribute('data-id');
-        const newPriority = prioritySelect.value;
-        
-        console.log('Öncelik değişikliği tespit edildi:', { ticketId, newPriority });
-        
-        // Öncelik güncelleme
-        try {
-          console.log('Öncelik güncelleme isteği gönderiliyor...');
-          
-          const res = await fetch(`/tickets/${ticketId}/priority`, {
-            method: 'PUT',
-            headers: { 'Content-Type': 'application/json' },
-            credentials: 'include',
-            body: JSON.stringify({ priority: newPriority })
-          });
-          
-          console.log('Response status:', res.status);
-          
-          if (!res.ok) {
-            const errorText = await res.text();
-            console.log('Error response text:', errorText);
-            
-            let errorData;
-            try {
-              errorData = JSON.parse(errorText);
-            } catch {
-              errorData = { error: 'parse_error', message: errorText };
-            }
-            
-            console.log('Error data:', errorData);
-            throw new Error(errorData.message || `HTTP ${res.status}`);
-          }
-          
-          const successData = await res.json();
-          console.log('Success data:', successData);
-          console.log('Öncelik başarıyla güncellendi!');
-          
-          // Başarı mesajı göster
-          alert('Öncelik başarıyla güncellendi!');
-          
-          // Liste yenile
-          await loadInbox();
-          
-        } catch (err) {
-          console.error('Öncelik güncelleme hatası:', err);
-          alert('Öncelik güncellenemedi: ' + err.message);
-          
-          // Hata durumunda eski değere geri dön
-          await loadInbox();
-        }
-      });
-
       $('#btnDoAssign').addEventListener('click', async () => {
         const userId = $('#assignUserSelect').value;
         if (!userId) { showAssignWarn('Lütfen bir kullanıcı seçin.'); return; }
@@ -361,6 +341,270 @@
       el.textContent = msg;
       el.classList.remove('d-none');
     }
+
+    let selectedTicket = null;
+    let messages = [];
+
+    // Talep kartına tıklama olayı - event delegation ile
+    $('#list').addEventListener('click', async (e) => {
+      // Atama butonu kontrolü
+      const assignBtn = e.target.closest('.btn-assign');
+      if (assignBtn) {
+        e.stopPropagation(); // Event'i durdur, selectTicket çalışmasın
+        selectedTicketId = assignBtn.getAttribute('data-id');
+        $('#assignWarn').classList.add('d-none');
+        bootstrap.Modal.getOrCreateInstance('#assignModal').show();
+        return;
+      }
+      
+      // İptal etme butonu kontrolü
+      const cancelBtn = e.target.closest('.btn-cancel');
+      if (cancelBtn) {
+        e.stopPropagation(); // Event'i durdur, selectTicket çalışmasın
+        const ticketId = cancelBtn.getAttribute('data-id');
+        
+        if (!confirm('Bu talebi iptal etmek istediğinizden emin misiniz?')) return;
+        
+        try {
+          const res = await fetch(`/tickets/${ticketId}/cancel`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            credentials: 'include'
+          });
+          
+          if (!res.ok) {
+            const err = await res.json().catch(()=>({}));
+            throw new Error(err.error || `HTTP ${res.status}`);
+          }
+          
+          // Butonun rengini kırmızı yap ve "İptal" yaz
+          cancelBtn.className = 'btn btn-sm btn-danger btn-cancel ms-1';
+          cancelBtn.textContent = 'İptal';
+          cancelBtn.disabled = true;
+          
+          // Aynı karttaki "Atama Yap" butonunu bul ve gizle
+          const ticketCard = cancelBtn.closest('.card');
+          const assignBtnInCard = ticketCard.querySelector('.btn-assign');
+          if (assignBtnInCard) {
+            assignBtnInCard.style.display = 'none';
+          }
+          
+        } catch (err) {
+          alert('Talep iptal edilemedi: ' + err.message);
+        }
+        return;
+      }
+      
+      // Öncelik seçimi kontrolü
+      const prioritySelect = e.target.closest('.priority-select');
+      if (prioritySelect) {
+        e.stopPropagation(); // Event'i durdur, selectTicket çalışmasın
+        return;
+      }
+      
+      // Eğer buton değilse, talep seçimi yap
+      const ticketCard = e.target.closest('.card');
+      if (ticketCard && !e.target.closest('button') && !e.target.closest('select')) {
+        const ticketId = ticketCard.querySelector('.btn-assign')?.getAttribute('data-id');
+        if (ticketId) {
+          await selectTicket(ticketId);
+        }
+      }
+    });
+
+    // Öncelik değişikliği için ayrı event listener
+    $('#list').addEventListener('change', async (e) => {
+      const prioritySelect = e.target.closest('.priority-select');
+      if (!prioritySelect) return;
+      
+      const ticketId = prioritySelect.getAttribute('data-id');
+      const newPriority = prioritySelect.value;
+      
+      try {
+        const res = await fetch(`/tickets/${ticketId}/priority`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          credentials: 'include',
+          body: JSON.stringify({ priority: newPriority })
+        });
+        
+        if (!res.ok) {
+          const err = await res.json().catch(()=>({}));
+          throw new Error(err.error || `HTTP ${res.status}`);
+        }
+        
+        // Liste yenile
+        await loadInbox();
+      } catch (err) {
+        alert('Öncelik güncellenemedi: ' + err.message);
+        // Hata durumunda eski değere geri dön
+        await loadInbox();
+      }
+    });
+
+    // Talep seçme fonksiyonu
+    async function selectTicket(ticketId) {
+      try {
+        console.log('Talep seçiliyor:', ticketId);
+        
+        // Talep bilgilerini getir
+        const ticketRes = await fetch(`/tickets/${ticketId}`, { credentials: 'include' });
+        if (!ticketRes.ok) throw new Error('Talep bilgileri alınamadı');
+        
+        selectedTicket = await ticketRes.json();
+        console.log('Selected ticket:', selectedTicket);
+        
+        // Mesajları getir
+        try {
+          const messagesRes = await fetch(`/tickets/${ticketId}/messages`, { credentials: 'include' });
+          if (messagesRes.ok) {
+            messages = await messagesRes.json();
+          } else {
+            messages = [];
+          }
+        } catch (msgErr) {
+          console.log('Messages fetch error:', msgErr);
+          messages = [];
+        }
+        
+        // UI'ı güncelle
+        updateChatUI();
+        
+        // Mesajlaşma panelini göster
+        const chatPanel = $('#chatPanel');
+        const noChatSelected = $('#noChatSelected');
+        
+        if (chatPanel && noChatSelected) {
+          chatPanel.style.display = 'block';
+          noChatSelected.style.display = 'none';
+        }
+        
+        // Mesaj listesini scroll et
+        setTimeout(() => {
+          const messageList = $('#messageList');
+          if (messageList) {
+            messageList.scrollTop = messageList.scrollHeight;
+          }
+        }, 100);
+        
+      } catch (err) {
+        console.error('Talep seçme hatası:', err);
+        alert('Talep seçilemedi: ' + err.message);
+      }
+    }
+
+    // Chat UI'ını güncelle
+    function updateChatUI() {
+      if (!selectedTicket) return;
+      
+      const chatTitle = $('#chatTitle');
+      const ticketSubject = $('#ticketSubject');
+      const ticketDescription = $('#ticketDescription');
+      const ticketStatus = $('#ticketStatus');
+      const ticketPriority = $('#ticketPriority');
+      
+      if (chatTitle) chatTitle.textContent = `#${selectedTicket.id} - ${selectedTicket.subject || 'Konu yok'}`;
+      if (ticketSubject) ticketSubject.textContent = selectedTicket.subject || 'Konu yok';
+      if (ticketDescription) ticketDescription.textContent = selectedTicket.description || 'Açıklama yok';
+      if (ticketStatus) ticketStatus.textContent = selectedTicket.status;
+      if (ticketPriority) ticketPriority.textContent = selectedTicket.priority;
+      
+      // Mesajları göster
+      renderMessages();
+    }
+
+    // Mesajları render et
+    function renderMessages() {
+      const messageList = $('#messageList');
+      
+      if (!messageList) {
+        console.error('Message list element bulunamadı');
+        return;
+      }
+      
+      if (messages.length === 0) {
+        messageList.innerHTML = '<div class="text-center text-muted"><small>Henüz mesaj yok</small></div>';
+        return;
+      }
+      
+      messageList.innerHTML = messages.map(msg => {
+        const isOwnMessage = msg.sender_id === me.id;
+        const messageClass = isOwnMessage ? 'bg-primary text-white' : 'bg-light';
+        const alignClass = isOwnMessage ? 'justify-content-end' : 'justify-content-start';
+        const statusText = isOwnMessage ? 'Gönderildi' : 'Gelen';
+        
+        return `
+          <div class="d-flex ${alignClass} mb-3">
+            <div class="message-bubble ${messageClass} p-3 rounded" style="max-width: 70%;">
+              <div class="message-header mb-2">
+                <small class="fw-bold">${escapeHtml(msg.sender_email || msg.sender_name || 'Bilinmeyen')}</small>
+                <span class="badge ${isOwnMessage ? 'bg-light text-dark' : 'bg-secondary'} ms-2">${statusText}</span>
+              </div>
+              <div class="message-content mb-2">${escapeHtml(msg.content)}</div>
+              <div class="message-time">
+                <small class="${isOwnMessage ? 'text-white-50' : 'text-muted'}">
+                  ${new Date(msg.created_at).toLocaleString('tr-TR')}
+                </small>
+              </div>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    // Mesaj gönderme
+    $('#sendMessage').addEventListener('click', async () => {
+      if (!selectedTicket) return;
+      
+      const messageInput = $('#messageInput');
+      const content = messageInput.value.trim();
+      
+      if (!content) return;
+      
+      try {
+        const res = await fetch(`/tickets/${selectedTicket.id}/messages`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          credentials: 'include',
+          body: JSON.stringify({ content })
+        });
+        
+        if (!res.ok) {
+          const err = await res.json().catch(()=>({}));
+          throw new Error(err.error || `HTTP ${res.status}`);
+        }
+        
+        const newMessage = await res.json();
+        messages.push(newMessage);
+        
+        // UI'ı güncelle
+        renderMessages();
+        messageInput.value = '';
+        
+        // Mesaj listesini scroll et
+        const messageList = $('#messageList');
+        messageList.scrollTop = messageList.scrollHeight;
+        
+      } catch (err) {
+        console.error('Mesaj gönderme hatası:', err);
+        alert('Mesaj gönderilemedi: ' + err.message);
+      }
+    });
+
+    // Enter tuşu ile mesaj gönderme
+    $('#messageInput').addEventListener('keypress', (e) => {
+      if (e.key === 'Enter') {
+        $('#sendMessage').click();
+      }
+    });
+
+    // Chat panelini kapat
+    $('#closeChat').addEventListener('click', () => {
+      $('#chatPanel').style.display = 'none';
+      $('#noChatSelected').style.display = 'block';
+      selectedTicket = null;
+      messages = [];
+    });
   </script>
 </body>
 </html>

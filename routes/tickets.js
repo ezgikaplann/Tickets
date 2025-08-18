@@ -368,4 +368,226 @@ router.put('/:id/priority', auth(['dispatcher']), async (req, res) => {
   }
 });
 
+/**
+ * GET /tickets/:id
+ * Belirli bir talebin detaylarını getirir
+ */
+router.get('/:id', auth(), async (req, res) => {
+  const { id } = req.params;
+
+  try {
+    const [tickets] = await pool.execute(`
+      SELECT t.*, u.full_name AS creator_name, a.full_name AS assignee_name
+      FROM tickets t
+      JOIN users u ON u.id = t.created_by
+      LEFT JOIN users a ON a.id = t.assigned_to
+      WHERE t.id = ?
+    `, [id]);
+
+    if (tickets.length === 0) {
+      return res.status(404).json({ error: 'ticket_not_found' });
+    }
+
+    res.json(tickets[0]);
+  } catch (error) {
+    console.error('Ticket get error:', error);
+    res.status(500).json({ error: 'internal_server_error', message: error.message });
+  }
+});
+
+/**
+ * GET /tickets/test-table
+ * Tablo yapısını test et
+ */
+router.get('/test-table', auth(), async (req, res) => {
+  try {
+    console.log('=== TABLO TEST BAŞLADI ===');
+    
+    // Tüm tabloları listele
+    const [tables] = await pool.execute('SHOW TABLES');
+    console.log('All tables:', tables);
+    
+    // ticket_messages tablosu var mı?
+    const [messageTables] = await pool.execute('SHOW TABLES LIKE "ticket_messages"');
+    console.log('Message tables found:', messageTables);
+    
+    if (messageTables.length > 0) {
+      // Tablo varsa kolonları kontrol et
+      const [columns] = await pool.execute('DESCRIBE ticket_messages');
+      console.log('Message table columns:', columns);
+      
+      // Örnek veri var mı?
+      const [sampleData] = await pool.execute('SELECT * FROM ticket_messages LIMIT 1');
+      console.log('Sample data:', sampleData);
+    }
+    
+    res.json({ 
+      tables: tables, 
+      messageTableExists: messageTables.length > 0,
+      columns: messageTables.length > 0 ? await pool.execute('DESCRIBE ticket_messages') : []
+    });
+    
+  } catch (error) {
+    console.error('Table test error:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+/**
+ * POST /tickets/:id/messages
+ * Bir talebe mesaj ekler
+ */
+router.post('/:id/messages', auth(), async (req, res) => {
+  const { id } = req.params;
+  const { content } = req.body || {};
+
+  console.log('=== MESAJ GÖNDERME BAŞLADI ===');
+  console.log('Ticket ID:', id);
+  console.log('Content:', content);
+  console.log('User ID:', req.user.id);
+
+  if (!content || content.trim().length === 0) {
+    return res.status(400).json({ error: 'content_required' });
+  }
+
+  try {
+    // Önce tablo yapısını kontrol et
+    const [tables] = await pool.execute('SHOW TABLES LIKE "ticket_messages"');
+    
+    if (tables.length === 0) {
+      console.log('ticket_messages tablosu yok, oluşturuluyor...');
+      
+      // Tabloyu oluştur
+      await pool.execute(`
+        CREATE TABLE ticket_messages (
+          id INT AUTO_INCREMENT PRIMARY KEY,
+          ticket_id INT NOT NULL,
+          sender_id INT NOT NULL,
+          content TEXT NOT NULL,
+          created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )
+      `);
+      
+      console.log('Tablo oluşturuldu');
+    } else {
+      // Tablo varsa kolonları kontrol et
+      const [columns] = await pool.execute('DESCRIBE ticket_messages');
+      console.log('Mevcut kolonlar:', columns);
+      
+      // content kolonu var mı kontrol et
+      const hasContentColumn = columns.some(col => col.Field === 'content');
+      console.log('Content kolonu var mı:', hasContentColumn);
+      
+      if (!hasContentColumn) {
+        console.log('Content kolonu ekleniyor...');
+        await pool.execute('ALTER TABLE ticket_messages ADD COLUMN content TEXT AFTER sender_id');
+        console.log('Content kolonu eklendi');
+      }
+    }
+
+    // Ticket var mı kontrol et
+    const [tickets] = await pool.execute('SELECT id FROM tickets WHERE id = ?', [id]);
+    if (tickets.length === 0) {
+      return res.status(404).json({ error: 'ticket_not_found' });
+    }
+
+    // Mesajı ekle
+    const [result] = await pool.execute(`
+      INSERT INTO ticket_messages (ticket_id, sender_id, content)
+      VALUES (?, ?, ?)
+    `, [id, req.user.id, content.trim()]);
+
+    console.log('Message inserted, ID:', result.insertId);
+
+    // Eklenen mesajı getir
+    const [messages] = await pool.execute(`
+      SELECT m.*, u.email AS sender_email, u.full_name AS sender_name
+      FROM ticket_messages m
+      JOIN users u ON u.id = m.sender_id
+      WHERE m.id = ?
+    `, [result.insertId]);
+
+    console.log('=== MESAJ GÖNDERME BAŞARILI ===');
+    res.json(messages[0]);
+    
+  } catch (error) {
+    console.error('=== MESAJ GÖNDERME HATASI ===');
+    console.error('Error:', error.message);
+    console.error('Stack:', error.stack);
+    
+    res.status(500).json({ 
+      error: 'internal_server_error', 
+      message: error.message 
+    });
+  }
+});
+
+/**
+ * GET /tickets/:id/messages
+ * Bir talebe ait mesajları getirir
+ */
+router.get('/:id/messages', auth(), async (req, res) => {
+  const { id } = req.params;
+
+  try {
+    // Mesajları email bilgisi ile getir
+    const [messages] = await pool.execute(`
+      SELECT m.*, u.email AS sender_email, u.full_name AS sender_name
+      FROM ticket_messages m
+      JOIN users u ON u.id = m.sender_id
+      WHERE m.ticket_id = ?
+      ORDER BY m.created_at ASC
+    `, [id]);
+
+    console.log('Messages loaded:', messages);
+    res.json(messages);
+  } catch (error) {
+    console.error('Messages get error:', error);
+    res.status(500).json({ error: 'internal_server_error', message: error.message });
+  }
+});
+
+// Tablo oluşturma fonksiyonu
+async function ensureMessagesTable() {
+  try {
+    console.log('=== TICKET_MESSAGES TABLOSU KONTROL EDİLİYOR ===');
+    
+    // Tablo var mı kontrol et
+    const [tables] = await pool.execute('SHOW TABLES LIKE "ticket_messages"');
+    
+    if (tables.length === 0) {
+      console.log('ticket_messages tablosu yok, oluşturuluyor...');
+      
+      await pool.execute(`
+        CREATE TABLE ticket_messages (
+          id INT AUTO_INCREMENT PRIMARY KEY,
+          ticket_id INT NOT NULL,
+          sender_id INT NOT NULL,
+          content TEXT NOT NULL,
+          created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+          FOREIGN KEY (ticket_id) REFERENCES tickets(id) ON DELETE CASCADE,
+          FOREIGN KEY (sender_id) REFERENCES users(id) ON DELETE CASCADE
+        )
+      `);
+      
+      console.log('ticket_messages tablosu başarıyla oluşturuldu');
+    } else {
+      console.log('ticket_messages tablosu zaten mevcut');
+      
+      // Kolonları kontrol et
+      try {
+        const [columns] = await pool.execute('DESCRIBE ticket_messages');
+        console.log('Mevcut kolonlar:', columns);
+      } catch (descError) {
+        console.log('Kolon kontrol hatası:', descError.message);
+      }
+    }
+  } catch (error) {
+    console.error('Tablo kontrol/oluşturma hatası:', error);
+  }
+}
+
+// Server başlangıcında tabloyu kontrol et
+ensureMessagesTable();
+
 module.exports = router;

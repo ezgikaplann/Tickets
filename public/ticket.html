@@ -1,0 +1,170 @@
+<!doctype html>
+<html lang="tr">
+<head>
+  <meta charset="utf-8" />
+  <title>HelpNest · Talep Detayı</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" />
+  <style>
+    .chat { max-height: 50vh; overflow-y: auto; }
+    .msg-bubble { border-radius: 12px; padding: .5rem .75rem; display: inline-block; max-width: 80%; }
+    .msg-me     { background:#e7f1ff; align-self: flex-end; }
+    .msg-other  { background:#f1f1f1; }
+    .msg-time   { font-size: .75rem; color:#6c757d; }
+    .ticket-card:hover{ box-shadow:0 0 0 2px rgba(0,0,0,.05) inset; cursor:pointer; }
+  </style>
+</head>
+<body class="bg-light">
+  <nav class="navbar bg-white border-bottom">
+    <div class="container-fluid">
+      <a class="navbar-brand" href="/dashboard.html">HelpNest</a>
+      <div class="d-flex align-items-center gap-2">
+        <div class="small text-muted" id="userInfo"></div>
+        <a class="btn btn-outline-secondary btn-sm" href="/dashboard.html">Geri</a>
+      </div>
+    </div>
+  </nav>
+
+  <main class="container py-4">
+    <div id="notFound" class="alert alert-danger d-none">Talep bulunamadı.</div>
+
+    <div class="row g-3">
+      <div class="col-lg-6">
+        <div class="card">
+          <div class="card-header fw-bold">Talep</div>
+          <div class="card-body" id="ticketInfo"></div>
+        </div>
+      </div>
+      <div class="col-lg-6">
+        <div class="card h-100">
+          <div class="card-header fw-bold">İletişim</div>
+          <div class="card-body d-flex flex-column">
+            <div id="chat" class="chat d-flex flex-column gap-2 mb-3"></div>
+            <div class="input-group">
+              <input id="msgInput" class="form-control" placeholder="Mesaj yazın..." />
+              <button id="btnSend" class="btn btn-primary">Gönder</button>
+            </div>
+            <div class="form-text">Mesajlar talebin tüm yetkili kullanıcılarınca görülebilir.</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="col-12">
+        <div class="card">
+          <div class="card-header fw-bold">Durum</div>
+          <div class="card-body d-flex flex-wrap align-items-center gap-3">
+            <div>Durum: <span id="statusBadge" class="badge bg-secondary">-</span></div>
+            <div>Öncelik: <span id="priorityBadge" class="badge bg-info">-</span></div>
+            <div>Zorluk: <span id="difficultyBadge" class="badge bg-warning">-</span></div>
+            <div class="ms-auto small text-muted" id="metaInfo"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+  <!-- NEW: Socket.IO istemcisi -->
+  <script src="/socket.io/socket.io.js"></script>
+
+  <script>
+    const $ = s => document.querySelector(s);
+    const qs = new URLSearchParams(location.search);
+    const ticketId = Number(qs.get('id') || 0);
+    let me = null;
+    let socket = null;
+
+    if (!ticketId) {
+      $('#notFound').classList.remove('d-none');
+    }
+
+    (async () => {
+      const r = await fetch('/auth/me', { credentials: 'include' });
+      if (!r.ok) return location.href = '/login.html';
+      me = (await r.json()).user;
+      $('#userInfo').textContent = `${me.full_name} • ${me.role}`;
+
+      await loadTicket();
+      await loadMessages(); // geçmişi bir defa doldur
+
+      // --- Socket bağlan & odaya katıl
+      socket = io({ withCredentials: true });
+      socket.on('connect', () => {
+        socket.emit('room:join', { ticketId });
+      });
+      // Yeni mesaj yayınlandığında anında ekle
+      socket.on('message:new', (m) => {
+        if (m.ticket_id !== ticketId) return;
+        appendMsg(m);
+      });
+    })();
+
+    async function loadTicket() {
+      const r = await fetch(`/tickets/${ticketId}`, { credentials: 'include' });
+      if (!r.ok) { $('#notFound').classList.remove('d-none'); return; }
+      const t = await r.json();
+
+      $('#ticketInfo').innerHTML = `
+        <div class="mb-2"><strong>Konu:</strong> ${escapeHtml(t.subject || '(Konu yok)')}</div>
+        <div class="mb-2"><strong>Açıklama:</strong><br>${escapeHtml(t.description || '')}</div>
+        <div class="mb-2"><strong>Kategori:</strong> ${t.category_path || '-'}</div>
+        ${t.attachment_url ? `<div class="mb-2"><strong>Görseller:</strong><br><img src="${t.attachment_url}" class="img-fluid rounded border">` : ''}
+      `;
+      $('#statusBadge').textContent = t.status;
+      $('#priorityBadge').textContent = t.priority || '-';
+      $('#difficultyBadge').textContent = t.difficulty || '-';
+      $('#metaInfo').textContent = `#${t.id} • ${new Date(t.created_at).toLocaleString('tr-TR')} • ${t.creator_name}${t.assignee_name ? ' • Atanan: ' + t.assignee_name : ''}`;
+    }
+
+    async function loadMessages() {
+      const r = await fetch(`/messages?ticket_id=${ticketId}`, { credentials:'include' });
+      if (!r.ok) return;
+      const list = await r.json();
+      const chat = $('#chat');
+      chat.innerHTML = list.map(m => renderMsg(m)).join('');
+      chat.scrollTop = chat.scrollHeight;
+    }
+
+    function appendMsg(m) {
+      const chat = $('#chat');
+      chat.insertAdjacentHTML('beforeend', renderMsg(m));
+      chat.scrollTop = chat.scrollHeight;
+    }
+
+    function renderMsg(m) {
+      const mine = m.sender_id === me.id;
+      return `
+        <div class="d-flex ${mine ? 'justify-content-end' : 'justify-content-start'}">
+          <div class="msg-bubble ${mine ? 'msg-me' : 'msg-other'}">
+            <div class="small fw-bold mb-1">${mine ? 'Ben' : escapeHtml(m.sender_name || '')}</div>
+            <div>${escapeHtml(m.body)}</div>
+            <div class="msg-time mt-1">${new Date(m.created_at).toLocaleString('tr-TR')}</div>
+          </div>
+        </div>`;
+    }
+
+    $('#btnSend').addEventListener('click', sendMessage);
+    $('#msgInput').addEventListener('keydown', (e)=>{ if(e.key==='Enter'){ e.preventDefault(); sendMessage(); }});
+
+    async function sendMessage() {
+      const body = $('#msgInput').value.trim();
+      if (!body) return;
+      $('#btnSend').disabled = true;
+      try {
+        const r = await fetch('/messages', {
+          method:'POST',
+          headers:{'Content-Type':'application/json'},
+          credentials:'include',
+          body: JSON.stringify({ ticket_id: ticketId, body })
+        });
+        if (!r.ok) throw new Error('Mesaj gönderilemedi');
+        $('#msgInput').value = '';
+        // NOT: Yeniden yüklemiyoruz; server 'message:new' yayınlayacak ve appendMsg ile düşecek.
+      } catch (e) { alert(e.message); }
+      finally { $('#btnSend').disabled = false; }
+    }
+
+    function escapeHtml(s){return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
+  </script>
+</body>
+</html>
