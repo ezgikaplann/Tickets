@@ -30,6 +30,19 @@
       font-size: 0.8rem;
     }
     
+    /* Custom renkler */
+    .bg-purple {
+      background-color: #6f42c1 !important;
+    }
+    
+    .bg-teal {
+      background-color: #20c997 !important;
+    }
+    
+    .bg-orange {
+      background-color: #fd7e14 !important;
+    }
+    
     #messageList::-webkit-scrollbar {
       width: 6px;
     }
@@ -289,7 +302,8 @@
       
       messageList.innerHTML = messages.map(msg => {
         const isOwnMessage = msg.sender_id === me.id;
-        const messageClass = isOwnMessage ? 'bg-primary text-white' : 'bg-light';
+        const messageColor = getMessageColor(msg.sender_id);
+        const messageClass = isOwnMessage ? `bg-${messageColor} text-white` : `bg-${messageColor} text-white`;
         const alignClass = isOwnMessage ? 'justify-content-end' : 'justify-content-start';
         const statusText = isOwnMessage ? 'Gönderildi' : 'Gelen';
         
@@ -302,7 +316,7 @@
               </div>
               <div class="message-content mb-2">${escapeHtml(msg.content)}</div>
               <div class="message-time">
-                <small class="${isOwnMessage ? 'text-white-50' : 'text-muted'}">
+                <small class="${isOwnMessage ? 'text-white-50' : 'text-white-50'}">
                   ${new Date(msg.created_at).toLocaleString('tr-TR')}
                 </small>
               </div>
@@ -310,6 +324,26 @@
           </div>
         `;
       }).join('');
+    }
+
+    // Kullanıcı ID'sine göre renk seçimi
+    function getMessageColor(userId) {
+      const colors = [
+        'primary',    // Mavi
+        'success',    // Yeşil
+        'info',       // Açık mavi
+        'warning',    // Sarı
+        'danger',     // Kırmızı
+        'secondary',  // Gri
+        'dark',       // Koyu gri
+        'purple',     // Mor (custom)
+        'teal',       // Teal (custom)
+        'orange'      // Turuncu (custom)
+      ];
+      
+      // Kullanıcı ID'sine göre renk seç (tutarlı olması için)
+      const colorIndex = userId % colors.length;
+      return colors[colorIndex];
     }
 
     // Mesaj gönderme
