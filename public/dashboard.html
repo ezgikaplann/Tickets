@@ -239,15 +239,26 @@
     }
 
     function card(t) {
+      // Admin rolündeki kullanıcılar için "Bana Ata" butonu - OPEN ve NEW durumundaki taleplerde
+      const assignToMeBtn = (me.role === 'admin' && (t.status === 'OPEN' || t.status === 'NEW')) ? 
+        `<button class="btn btn-sm btn-primary btn-assign-to-me" data-id="${t.id}" onclick="event.stopPropagation(); assignToMe(${t.id})">Bana Ata</button>` : '';
+      
       return `
       <div class="card ticket-card" style="cursor: pointer;" onclick="selectTicket(${t.id})">
         <div class="card-body">
-          <div class="d-flex justify-content-between">
-            <strong>${escapeHtml(t.subject||'(Konu yok)')}</strong>
-            <span class="badge bg-secondary">${t.status}</span>
+          <div class="d-flex justify-content-between align-items-start">
+            <div class="flex-grow-1">
+              <strong>${escapeHtml(t.subject||'(Konu yok)')}</strong>
+              <div class="small text-muted">#${t.id} • ${new Date(t.created_at).toLocaleString('tr-TR')} • Öncelik: ${t.priority}</div>
+              <div class="small mt-2">${escapeHtml((t.description||'').slice(0,180))}</div>
+            </div>
+            <div class="text-end">
+              <div class="mb-2">
+                <span class="badge bg-secondary">${t.status}</span>
+              </div>
+              ${assignToMeBtn}
+            </div>
           </div>
-          <div class="small text-muted">#${t.id} • ${new Date(t.created_at).toLocaleString('tr-TR')} • Öncelik: ${t.priority}</div>
-          <div class="small mt-2">${escapeHtml((t.description||'').slice(0,180))}</div>
         </div>
       </div>`;
     }
@@ -476,6 +487,28 @@
       selectedTicket = null;
       messages = [];
     });
+
+    // Admin için "Bana Ata" fonksiyonu
+    async function assignToMe(ticketId) {
+      try {
+        const res = await fetch(`/tickets/${ticketId}/assign_to_me`, {
+          method: 'POST',
+          credentials: 'include'
+        });
+        
+        if (!res.ok) {
+          const err = await res.json().catch(()=>({}));
+          throw new Error(err.error || `HTTP ${res.status}`);
+        }
+        
+        // Başarılı atama sonrası listeyi yenile
+        await loadInbox();
+        alert('Talep başarıyla size atandı!');
+        
+      } catch (err) {
+        alert('Talep atanamadı: ' + err.message);
+      }
+    }
   </script>
 </body>
 </html>
