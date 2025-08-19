@@ -154,7 +154,7 @@
             <label class="form-label">Kullanıcı</label>
             <select id="assignUserSelect" class="form-select"></select>
             <div id="assignUsersFallback" class="form-text d-none">
-              Kullanıcı listesi alınamadı. Backend’de <code>GET /users</code> etkin olmalı ve sadece <code>dispatcher</code> erişebilmeli.
+              Kullanıcı listesi alınamadı. Backend'de <code>GET /users</code> etkin olmalı ve sadece <code>dispatcher</code> erişebilmeli.
             </div>
           </div>
           <div class="alert alert-warning d-none" id="assignWarn"></div>
@@ -162,6 +162,41 @@
         <div class="modal-footer">
           <button class="btn btn-secondary" data-bs-dismiss="modal">İptal</button>
           <button id="btnDoAssign" class="btn btn-primary">Ata</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Dispatcher için düzenleme modalı -->
+  <div class="modal fade" id="editModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">Talebi Düzenle</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Kapat"></button>
+        </div>
+        <div class="modal-body">
+          <input type="hidden" id="editTicketId">
+          <div class="mb-3">
+            <label class="form-label">Konu</label>
+            <input type="text" class="form-control" id="editSubject" required>
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Açıklama</label>
+            <textarea class="form-control" id="editDescription" rows="4"></textarea>
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Öncelik</label>
+            <select class="form-select" id="editPriority">
+              <option value="LOW">Düşük</option>
+              <option value="MEDIUM">Orta</option>
+              <option value="HIGH">Yüksek</option>
+            </select>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button class="btn btn-secondary" data-bs-dismiss="modal">İptal</button>
+          <button id="btnSaveEdit" class="btn btn-primary">Kaydet</button>
         </div>
       </div>
     </div>
@@ -281,6 +316,8 @@
       // Normal talepler için mevcut görünüm + tıklanabilir
       const assignBtn = `<button class="btn btn-sm btn-primary btn-assign" data-id="${t.id}">Atama Yap</button>`;
       const cancelBtn = `<button class="btn btn-sm btn-warning btn-cancel ms-1" data-id="${t.id}">İptal Et</button>`;
+      const editBtn = `<button class="btn btn-sm btn-info btn-edit ms-1" data-id="${t.id}">Düzenle</button>`;
+      const deleteBtn = `<button class="btn btn-sm btn-danger btn-delete ms-1" data-id="${t.id}">Sil</button>`;
       
       // Öncelik seçimi dropdown'ı
       const prioritySelect = `
@@ -311,6 +348,8 @@
               <div class="mt-2">
                 ${assignBtn}
                 ${cancelBtn}
+                ${editBtn}
+                ${deleteBtn}
               </div>
             </div>
           </div>
@@ -404,6 +443,44 @@
           
         } catch (err) {
           alert('Talep iptal edilemedi: ' + err.message);
+        }
+        return;
+      }
+      
+      // Düzenleme butonu kontrolü
+      const editBtn = e.target.closest('.btn-edit');
+      if (editBtn) {
+        e.stopPropagation(); // Event'i durdur, selectTicket çalışmasın
+        const ticketId = editBtn.getAttribute('data-id');
+        await openEditModal(ticketId);
+        return;
+      }
+      
+      // Silme butonu kontrolü
+      const deleteBtn = e.target.closest('.btn-delete');
+      if (deleteBtn) {
+        e.stopPropagation(); // Event'i durdur, selectTicket çalışmasın
+        const ticketId = deleteBtn.getAttribute('data-id');
+        
+        if (!confirm('Bu talebi silmek istediğinizden emin misiniz? Bu işlem geri alınamaz!')) return;
+        
+        try {
+          const res = await fetch(`/tickets/${ticketId}`, {
+            method: 'DELETE',
+            credentials: 'include'
+          });
+          
+          if (!res.ok) {
+            const err = await res.json().catch(()=>({}));
+            throw new Error(err.error || `HTTP ${res.status}`);
+          }
+          
+          // Başarılı silme sonrası listeyi yenile
+          await loadInbox();
+          alert('Talep başarıyla silindi');
+          
+        } catch (err) {
+          alert('Talep silinemedi: ' + err.message);
         }
         return;
       }
@@ -637,6 +714,67 @@
       $('#noChatSelected').style.display = 'block';
       selectedTicket = null;
       messages = [];
+    });
+
+    // Düzenleme modalını aç
+    async function openEditModal(ticketId) {
+      try {
+        // Talep bilgilerini getir
+        const res = await fetch(`/tickets/${ticketId}`, { credentials: 'include' });
+        if (!res.ok) throw new Error('Talep bilgileri alınamadı');
+        
+        const ticket = await res.json();
+        
+        // Modal alanlarını doldur
+        $('#editTicketId').value = ticket.id;
+        $('#editSubject').value = ticket.subject || '';
+        $('#editDescription').value = ticket.description || '';
+        $('#editPriority').value = ticket.priority || 'MEDIUM';
+        
+        // Modal'ı göster
+        bootstrap.Modal.getOrCreateInstance('#editModal').show();
+        
+      } catch (err) {
+        alert('Talep bilgileri alınamadı: ' + err.message);
+      }
+    }
+
+    // Düzenleme kaydetme
+    $('#btnSaveEdit').addEventListener('click', async () => {
+      const ticketId = $('#editTicketId').value;
+      const subject = $('#editSubject').value.trim();
+      const description = $('#editDescription').value.trim();
+      const priority = $('#editPriority').value;
+      
+      if (!subject) {
+        alert('Konu alanı zorunludur');
+        return;
+      }
+      
+      try {
+        const res = await fetch(`/tickets/${ticketId}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          credentials: 'include',
+          body: JSON.stringify({ subject, description, priority })
+        });
+        
+        if (!res.ok) {
+          const err = await res.json().catch(()=>({}));
+          throw new Error(err.error || `HTTP ${res.status}`);
+        }
+        
+        // Modal'ı kapat
+        bootstrap.Modal.getInstance('#editModal')?.hide();
+        
+        // Listeyi yenile
+        await loadInbox();
+        
+        alert('Talep başarıyla güncellendi');
+        
+      } catch (err) {
+        alert('Talep güncellenemedi: ' + err.message);
+      }
     });
   </script>
 </body>

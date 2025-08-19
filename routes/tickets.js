@@ -477,6 +477,105 @@ router.get('/:id', auth(), async (req, res) => {
 });
 
 /**
+ * DELETE /tickets/:id
+ * DISPATCHER talebi siler
+ */
+router.delete('/:id', auth(['dispatcher']), async (req, res) => {
+  const { id } = req.params;
+
+  try {
+    // 1) Ticket var mı?
+    const [[ticket]] = await pool.execute('SELECT id, status FROM tickets WHERE id = ?', [id]);
+    if (!ticket) {
+      return res.status(404).json({ error: 'ticket_not_found', message: 'Talep bulunamadı' });
+    }
+
+    // 2) Kapalı talepleri silmeye izin ver
+    // if (['RESOLVED','CLOSED','CANCELLED'].includes(ticket.status)) {
+    //   return res.status(409).json({ error: 'ticket_closed_or_resolved', message: 'Kapalı talepler silinemez' });
+    // }
+
+    // 3) Ticket'ı sil (CASCADE ile mesajlar da silinir)
+    await pool.execute('DELETE FROM tickets WHERE id = ?', [id]);
+
+    res.json({ ok: true, message: 'Talep başarıyla silindi' });
+  } catch (error) {
+    console.error('Ticket delete error:', error);
+    res.status(500).json({ error: 'internal_server_error', message: error.message });
+  }
+});
+
+/**
+ * PUT /tickets/:id
+ * DISPATCHER talebi düzenler
+ */
+router.put('/:id', auth(['dispatcher']), async (req, res) => {
+  const { id } = req.params;
+  const { subject, description, priority, category_id, subcategory_id, work_group_id } = req.body || {};
+
+  try {
+    // 1) Ticket var mı?
+    const [[ticket]] = await pool.execute('SELECT id, status FROM tickets WHERE id = ?', [id]);
+    if (!ticket) {
+      return res.status(404).json({ error: 'ticket_not_found', message: 'Talep bulunamadı' });
+    }
+
+    // 2) Kapalı talepleri düzenlemeye izin ver
+    // if (['RESOLVED','CLOSED','CANCELLED'].includes(ticket.status)) {
+    //   return res.status(409).json({ error: 'ticket_closed_or_resolved', message: 'Kapalı talepler düzenlenemez' });
+    // }
+
+    // 3) Güncellenecek alanları hazırla
+    const updateFields = [];
+    const updateValues = [];
+    
+    if (subject !== undefined) {
+      updateFields.push('subject = ?');
+      updateValues.push(subject);
+    }
+    
+    if (description !== undefined) {
+      updateFields.push('description = ?');
+      updateValues.push(description);
+    }
+    
+    if (priority !== undefined && ['LOW', 'MEDIUM', 'HIGH'].includes(priority)) {
+      updateFields.push('priority = ?');
+      updateValues.push(priority);
+    }
+    
+    if (category_id !== undefined) {
+      updateFields.push('category_id = ?');
+      updateValues.push(category_id);
+    }
+    
+    if (subcategory_id !== undefined) {
+      updateFields.push('subcategory_id = ?');
+      updateValues.push(subcategory_id);
+    }
+    
+    if (work_group_id !== undefined) {
+      updateFields.push('work_group_id = ?');
+      updateValues.push(work_group_id);
+    }
+
+    if (updateFields.length === 0) {
+      return res.status(400).json({ error: 'no_fields_to_update', message: 'Güncellenecek alan bulunamadı' });
+    }
+
+    // 4) Güncelle
+    updateValues.push(id);
+    const updateSql = `UPDATE tickets SET ${updateFields.join(', ')} WHERE id = ?`;
+    await pool.execute(updateSql, updateValues);
+
+    res.json({ ok: true, message: 'Talep başarıyla güncellendi' });
+  } catch (error) {
+    console.error('Ticket update error:', error);
+    res.status(500).json({ error: 'internal_server_error', message: error.message });
+  }
+});
+
+/**
  * GET /tickets/test-table
  * Tablo yapısını test et
  */
