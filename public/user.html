@@ -4,8 +4,95 @@
   <meta charset="utf-8" />
   <title>HelpNest · Kullanıcı Paneli</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" />
-  <style>.ticket-card .badge{letter-spacing:.3px}</style>
+  <link href="https://cdn.jsdelivr.net/npm/bootswatch@5.3.2/dist/lux/bootstrap.min.css" rel="stylesheet" />
+  <style>
+    .ticket-card:hover {
+      background-color: #f8f9fa;
+      transform: translateY(-1px);
+      transition: all 0.2s ease;
+    }
+    
+    .message-bubble {
+      word-wrap: break-word;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    }
+    
+    .message-header {
+      border-bottom: 1px solid rgba(255,255,255,0.2);
+      padding-bottom: 0.5rem;
+    }
+    
+    .message-content {
+      line-height: 1.4;
+      /* Tüm mesaj içerikleri için beyaz yazı */
+      color: #ffffff !important;
+    }
+    
+    .message-time {
+      font-size: 0.8rem;
+    }
+    
+    /* Mesaj baloncukları için farklı renkler - her kullanıcı için farklı */
+    .message-bubble.bg-primary {
+      background-color: #007bff !important;
+    }
+    
+    .message-bubble.bg-success {
+      background-color: #28a745 !important;
+    }
+    
+    .message-bubble.bg-info {
+      background-color: #17a2b8 !important;
+    }
+    
+    .message-bubble.bg-warning {
+      background-color: #ffc107 !important;
+    }
+    
+    .message-bubble.bg-danger {
+      background-color: #dc3545 !important;
+    }
+    
+    .message-bubble.bg-secondary {
+      background-color: #6c757d !important;
+    }
+    
+    .message-bubble.bg-dark {
+      background-color: #343a40 !important;
+    }
+    
+    .message-bubble.bg-purple {
+      background-color: #6f42c1 !important;
+    }
+    
+    .message-bubble.bg-teal {
+      background-color: #20c997 !important;
+    }
+    
+    .message-bubble.bg-orange {
+      background-color: #fd7e14 !important;
+    }
+    
+    /* Tüm mesaj baloncuklarında beyaz yazı */
+    .message-bubble .message-content,
+    .message-bubble .message-header small,
+    .message-bubble .message-time small {
+      color: #ffffff !important;
+    }
+    
+    #messageList::-webkit-scrollbar {
+      width: 6px;
+    }
+    
+    #messageList::-webkit-scrollbar-track {
+      background: #f1f1f1;
+    }
+    
+    #messageList::-webkit-scrollbar-thumb {
+      background: #c1c1c1;
+      border-radius: 3px;
+    }
+  </style>
 </head>
 <body class="bg-light">
   <nav class="navbar bg-white border-bottom">
@@ -85,7 +172,7 @@
     </div>
   </main>
 
-  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
   <script>
     const $ = s => document.querySelector(s);
     let me = null;
