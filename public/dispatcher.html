@@ -443,7 +443,7 @@
               <div class="flex-grow-1">
                 <strong>${escapeHtml(t.subject||'(Konu yok)')}</strong>
                 <div class="small text-muted">
-                  #${t.id} • ${new Date(t.created_at).toLocaleString('tr-TR')} • Öncelik: ${t.priority}
+                  #${t.id} • ${new Date(t.created_at).toLocaleString('tr-TR')} • Öncelik: ${getPriorityText(t.priority)}
                 </div>
                 <div class="small mt-2">${escapeHtml((t.description||'').slice(0,180))}</div>
               </div>
@@ -467,9 +467,9 @@
       // Öncelik seçimi dropdown'ı
       const prioritySelect = `
         <select class="form-select form-select-sm priority-select" data-id="${t.id}" style="width: auto;">
-          <option value="LOW" ${t.priority === 'LOW' ? 'selected' : ''}>Low</option>
-          <option value="MEDIUM" ${t.priority === 'MEDIUM' ? 'selected' : ''}>Medium</option>
-          <option value="HIGH" ${t.priority === 'HIGH' ? 'selected' : ''}>High</option>
+          <option value="LOW" ${t.priority === 'LOW' ? 'selected' : ''}>Düşük</option>
+          <option value="MEDIUM" ${t.priority === 'MEDIUM' ? 'selected' : ''}>Orta</option>
+          <option value="HIGH" ${t.priority === 'HIGH' ? 'selected' : ''}>Yüksek</option>
         </select>
       `;
 
@@ -486,7 +486,7 @@
             </div>
             <div class="text-end">
               <div class="mb-2">
-                <span class="badge bg-secondary">${t.status}</span>
+                <span class="badge ${badgeClass(t.status)}">${getStatusText(t.status)}</span>
                 ${prioritySelect}
               </div>
               ${t.assignee_name ? `<div class="small mt-1 text-muted">${escapeHtml(t.assignee_name)}</div>` : ''}
@@ -937,6 +937,42 @@
         alert('Talep güncellenemedi: ' + err.message);
       }
     });
+
+    // Durum badge'leri için renk sınıfları
+    function badgeClass(s) {
+      switch (s) {
+        case 'NEW': return 'bg-primary';
+        case 'OPEN': return 'bg-warning';
+        case 'ASSIGNED': return 'bg-info';
+        case 'RESOLVED': return 'bg-success';
+        case 'CANCELLED': return 'bg-danger';
+        case 'CLOSED': return 'bg-secondary';
+        default: return 'bg-dark';
+      }
+    }
+
+    // Durum metinlerini Türkçe'ye çevir
+    function getStatusText(status) {
+      switch (status) {
+        case 'NEW': return 'Yeni';
+        case 'OPEN': return 'Açık';
+        case 'ASSIGNED': return 'Atandı';
+        case 'RESOLVED': return 'Çözüldü';
+        case 'CANCELLED': return 'İptal';
+        case 'CLOSED': return 'Kapalı';
+        default: return status;
+      }
+    }
+
+    // Öncelik metinlerini Türkçe'ye çevir
+    function getPriorityText(priority) {
+      switch (priority) {
+        case 'LOW': return 'Düşük';
+        case 'MEDIUM': return 'Orta';
+        case 'HIGH': return 'Yüksek';
+        default: return priority;
+      }
+    }
   </script>
 </body>
 </html>

@@ -5,6 +5,94 @@
   <title>HelpNest · Tamamlananlar</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <link href="https://cdn.jsdelivr.net/npm/bootswatch@5.3.2/dist/lux/bootstrap.min.css" rel="stylesheet" />
+  <style>
+    .ticket-card:hover {
+      background-color: #f8f9fa;
+      transform: translateY(-1px);
+      transition: all 0.2s ease;
+    }
+    
+    .message-bubble {
+      word-wrap: break-word;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    }
+    
+    .message-header {
+      border-bottom: 1px solid rgba(255,255,255,0.2);
+      padding-bottom: 0.5rem;
+    }
+    
+    .message-content {
+      line-height: 1.4;
+      /* Tüm mesaj içerikleri için beyaz yazı */
+      color: #ffffff !important;
+    }
+    
+    .message-time {
+      font-size: 0.8rem;
+    }
+    
+    /* Mesaj baloncukları için farklı renkler - her kullanıcı için farklı */
+    .message-bubble.bg-primary {
+      background-color: #007bff !important;
+    }
+    
+    .message-bubble.bg-success {
+      background-color: #28a745 !important;
+    }
+    
+    .message-bubble.bg-info {
+      background-color: #17a2b8 !important;
+    }
+    
+    .message-bubble.bg-warning {
+      background-color: #ffc107 !important;
+    }
+    
+    .message-bubble.bg-danger {
+      background-color: #dc3545 !important;
+    }
+    
+    .message-bubble.bg-secondary {
+      background-color: #6c757d !important;
+    }
+    
+    .message-bubble.bg-dark {
+      background-color: #343a40 !important;
+    }
+    
+    .message-bubble.bg-purple {
+      background-color: #6f42c1 !important;
+    }
+    
+    .message-bubble.bg-teal {
+      background-color: #20c997 !important;
+    }
+    
+    .message-bubble.bg-orange {
+      background-color: #fd7e14 !important;
+    }
+    
+    /* Tüm mesaj baloncuklarında beyaz yazı */
+    .message-bubble .message-content,
+    .message-bubble .message-header small,
+    .message-bubble .message-time small {
+      color: #ffffff !important;
+    }
+    
+    #messageList::-webkit-scrollbar {
+      width: 6px;
+    }
+    
+    #messageList::-webkit-scrollbar-track {
+      background: #f1f1f1;
+    }
+    
+    #messageList::-webkit-scrollbar-thumb {
+      background: #c1c1c1;
+      border-radius: 3px;
+    }
+  </style>
 </head>
 <body class="bg-light">
   <nav class="navbar bg-white border-bottom">
@@ -63,37 +151,87 @@
     }
 
     async function loadDone() {
-      const [resolved, closed] = await Promise.all([
-        fetchTickets({ status: 'RESOLVED' }),
-        fetchTickets({ status: 'CLOSED' })
-      ]);
-      const list = [...resolved, ...closed].sort((a,b)=> new Date(b.updated_at)-new Date(a.updated_at));
-      render(list);
+      try {
+        const [resolved, closed] = await Promise.all([
+          fetchTickets({ status: 'RESOLVED' }),
+          fetchTickets({ status: 'CLOSED' })
+        ]);
+        
+        // updated_at alanı yoksa created_at kullan
+        const list = [...resolved, ...closed].sort((a,b) => {
+          const dateA = a.updated_at || a.created_at;
+          const dateB = b.updated_at || b.created_at;
+          return new Date(dateB) - new Date(dateA);
+        });
+        
+        render(list);
+      } catch (err) {
+        console.error('Tamamlanan talepler yüklenemedi:', err);
+        $('#list').innerHTML = '<div class="alert alert-danger">Talepler yüklenirken hata oluştu.</div>';
+      }
     }
 
     function render(list) {
       const el = $('#list'), empty = $('#empty');
-      if (!list.length) { el.innerHTML = ''; empty.classList.remove('d-none'); return; }
+      if (!list.length) { 
+        el.innerHTML = ''; 
+        empty.classList.remove('d-none'); 
+        return; 
+      }
       empty.classList.add('d-none');
       el.innerHTML = list.map(t => card(t)).join('');
     }
 
     function card(t) {
-      const isClosed = t.status === 'CLOSED';
       return `
-      <div class="card">
+      <div class="card ticket-card" style="cursor: pointer;" onclick="selectTicket(${t.id})">
         <div class="card-body">
           <div class="d-flex justify-content-between">
-            <strong>${escapeHtml(t.subject||'(Konu yok)')}</strong>
-            <span class="badge ${isClosed ? 'bg-secondary' : 'bg-success'}">${t.status}</span>
+            <strong>${escapeHtml(t.subject || '(Konu yok)')}</strong>
+            <span class="badge ${badgeClass(t.status)}">${getStatusText(t.status)}</span>
           </div>
           <div class="small text-muted">
-            #${t.id} • ${new Date(t.created_at).toLocaleString('tr-TR')}
-            • Öncelik: ${t.priority}
+            #${t.id} • ${new Date(t.created_at).toLocaleString('tr-TR')} • Öncelik: ${getPriorityText(t.priority)}
           </div>
-          <div class="small mt-2">${escapeHtml((t.description||'').slice(0,180))}</div>
+          <div class="small mt-2">${escapeHtml((t.description || '').slice(0,200))}</div>
         </div>
       </div>`;
+    }
+
+    // Durum badge'leri için renk sınıfları
+    function badgeClass(s) {
+      switch (s) {
+        case 'NEW': return 'bg-primary';
+        case 'OPEN': return 'bg-warning';
+        case 'ASSIGNED': return 'bg-info';
+        case 'RESOLVED': return 'bg-success';
+        case 'CANCELLED': return 'bg-danger';
+        case 'CLOSED': return 'bg-secondary';
+        default: return 'bg-dark';
+      }
+    }
+
+    // Durum metinlerini Türkçe'ye çevir
+    function getStatusText(status) {
+      switch (status) {
+        case 'NEW': return 'Yeni';
+        case 'OPEN': return 'Açık';
+        case 'ASSIGNED': return 'Atandı';
+        case 'RESOLVED': return 'Çözüldü';
+        case 'CANCELLED': return 'İptal';
+        case 'CLOSED': return 'Kapalı';
+        default: return status;
+      }
+    }
+
+    // Öncelik metinlerini Türkçe'ye çevir
+    function getPriorityText(priority) {
+      switch (priority) {
+        case 'LOW': return 'Düşük';
+        case 'MEDIUM': return 'Orta';
+        case 'HIGH': return 'Yüksek';
+        default: return priority;
+      }
     }
 
     function escapeHtml(s){return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}

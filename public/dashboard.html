@@ -288,12 +288,12 @@
           <div class="d-flex justify-content-between align-items-start">
             <div class="flex-grow-1">
               <strong>${escapeHtml(t.subject||'(Konu yok)')}</strong>
-              <div class="small text-muted">#${t.id} • ${new Date(t.created_at).toLocaleString('tr-TR')} • Öncelik: ${t.priority}</div>
+              <div class="small text-muted">#${t.id} • ${new Date(t.created_at).toLocaleString('tr-TR')} • Öncelik: ${getPriorityText(t.priority)}</div>
               <div class="small mt-2">${escapeHtml((t.description||'').slice(0,180))}</div>
             </div>
             <div class="text-end">
               <div class="mb-2">
-                <span class="badge ${badgeClass(t.status)}">${t.status}</span>
+                <span class="badge ${badgeClass(t.status)}">${getStatusText(t.status)}</span>
               </div>
               ${assignToMeBtn}
             </div>
@@ -574,6 +574,29 @@
         case 'CANCELLED': return 'bg-danger';
         case 'CLOSED': return 'bg-secondary';
         default: return 'bg-dark';
+      }
+    }
+
+    // Durum metinlerini Türkçe'ye çevir
+    function getStatusText(status) {
+      switch (status) {
+        case 'NEW': return 'Yeni';
+        case 'OPEN': return 'Açık';
+        case 'ASSIGNED': return 'Atandı';
+        case 'RESOLVED': return 'Çözüldü';
+        case 'CANCELLED': return 'İptal';
+        case 'CLOSED': return 'Kapalı';
+        default: return status;
+      }
+    }
+
+    // Öncelik metinlerini Türkçe'ye çevir
+    function getPriorityText(priority) {
+      switch (priority) {
+        case 'LOW': return 'Düşük';
+        case 'MEDIUM': return 'Orta';
+        case 'HIGH': return 'Yüksek';
+        default: return priority;
       }
     }
 

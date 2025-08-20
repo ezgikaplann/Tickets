@@ -5,6 +5,13 @@
   <title>HelpNest · Bana Atananlar</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <link href="https://cdn.jsdelivr.net/npm/bootswatch@5.3.2/dist/lux/bootstrap.min.css" rel="stylesheet" />
+  <style>
+    .ticket-card:hover {
+      background-color: #f8f9fa;
+      transform: translateY(-1px);
+      transition: all 0.2s ease;
+    }
+  </style>
 </head>
 <body class="bg-light">
   <nav class="navbar bg-white border-bottom">
@@ -23,6 +30,7 @@
   </nav>
 
   <main class="container py-4">
+    <div class="alert alert-info small">Size atanan talepler burada listelenir.</div>
     <div id="list" class="vstack gap-2"></div>
     <div id="empty" class="text-muted d-none">Size atanmış talep yok.</div>
   </main>
@@ -54,38 +62,90 @@
     }
 
     async function loadAssigned() {
-      const list = await fetchTickets({ assigned_to: me.id });
-      render(list);
+      try {
+        // Sadece kullanıcıya atanan talepleri getir
+        const list = await fetchTickets({ assigned_to: me.id });
+        
+        // Sadece ASSIGNED durumundaki talepleri göster
+        const assignedTickets = list.filter(t => t.status === 'ASSIGNED');
+        
+        render(assignedTickets);
+      } catch (err) {
+        console.error('Atanan talepler yüklenemedi:', err);
+        $('#list').innerHTML = '<div class="alert alert-danger">Talepler yüklenirken hata oluştu.</div>';
+      }
     }
 
     function render(list) {
       const el = $('#list'), empty = $('#empty');
-      if (!list.length) { el.innerHTML = ''; empty.classList.remove('d-none'); return; }
+      if (!list.length) { 
+        el.innerHTML = ''; 
+        empty.classList.remove('d-none'); 
+        return; 
+      }
       empty.classList.add('d-none');
       el.innerHTML = list.map(t => card(t)).join('');
     }
 
     function card(t) {
-      // Sadece ASSIGNED durumundaki talepler için "Tamamlandı" butonu göster
-      const completeBtn = t.status === 'ASSIGNED' ? 
-        `<button class="btn btn-sm btn-success btn-complete" data-id="${t.id}">Tamamlandı</button>` : '';
-      
       return `
-      <div class="card">
+      <div class="card ticket-card">
         <div class="card-body">
-          <div class="d-flex justify-content-between align-items-start gap-3">
+          <div class="d-flex justify-content-between align-items-start">
             <div class="flex-grow-1">
-              <strong>${escapeHtml(t.subject||'(Konu yok)')}</strong>
-              <div class="small text-muted">#${t.id} • ${new Date(t.created_at).toLocaleString('tr-TR')} • Öncelik: ${t.priority}</div>
-              <div class="small mt-2">${escapeHtml((t.description||'').slice(0,180))}</div>
+              <strong>${escapeHtml(t.subject || '(Konu yok)')}</strong>
+              <div class="small text-muted">
+                #${t.id} • ${new Date(t.created_at).toLocaleString('tr-TR')} • Öncelik: ${getPriorityText(t.priority)}
+              </div>
+              <div class="small mt-2">${escapeHtml((t.description || '').slice(0,200))}</div>
             </div>
             <div class="text-end">
-              <span class="badge bg-info">${t.status}</span>
-              ${completeBtn}
+              <div class="mb-2">
+                <span class="badge ${badgeClass(t.status)}">${getStatusText(t.status)}</span>
+              </div>
+              <div class="mt-2">
+                <button class="btn btn-sm btn-success btn-complete" data-id="${t.id}">Tamamlandı</button>
+              </div>
             </div>
           </div>
         </div>
       </div>`;
+    }
+
+    // Durum badge'leri için renk sınıfları
+    function badgeClass(s) {
+      switch (s) {
+        case 'NEW': return 'bg-primary';
+        case 'OPEN': return 'bg-warning';
+        case 'ASSIGNED': return 'bg-info';
+        case 'RESOLVED': return 'bg-success';
+        case 'CANCELLED': return 'bg-danger';
+        case 'CLOSED': return 'bg-secondary';
+        default: return 'bg-dark';
+      }
+    }
+
+    // Durum metinlerini Türkçe'ye çevir
+    function getStatusText(status) {
+      switch (status) {
+        case 'NEW': return 'Yeni';
+        case 'OPEN': return 'Açık';
+        case 'ASSIGNED': return 'Atandı';
+        case 'RESOLVED': return 'Çözüldü';
+        case 'CANCELLED': return 'İptal';
+        case 'CLOSED': return 'Kapalı';
+        default: return status;
+      }
+    }
+
+    // Öncelik metinlerini Türkçe'ye çevir
+    function getPriorityText(priority) {
+      switch (priority) {
+        case 'LOW': return 'Düşük';
+        case 'MEDIUM': return 'Orta';
+        case 'HIGH': return 'Yüksek';
+        default: return priority;
+      }
     }
 
     function escapeHtml(s){return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
@@ -99,11 +159,6 @@
       if (!confirm('Bu talebi tamamlandı olarak işaretlemek istediğinizden emin misiniz?')) return;
       
       try {
-        console.log('=== TALEP TAMAMLAMA BAŞLADI ===');
-        console.log('Ticket ID:', ticketId);
-        console.log('User ID:', me.id);
-        console.log('User Role:', me.role);
-        
         const res = await fetch(`/tickets/${ticketId}/status`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -111,23 +166,12 @@
           body: JSON.stringify({ status: 'RESOLVED', note: 'Talep tamamlandı' })
         });
         
-        console.log('Response status:', res.status);
-        
         if (!res.ok) {
           const err = await res.json().catch(()=>({}));
-          console.log('Error response:', err);
-          
-          if (res.status === 403) {
-            console.log('Permission denied details:', err.debug);
-            alert('Bu talebi tamamlama yetkiniz yok. Sadece kendi oluşturduğunuz veya size atanan talepleri tamamlayabilirsiniz.');
-          } else {
-            throw new Error(err.error || `HTTP ${res.status}`);
-          }
-          return;
+          throw new Error(err.error || `HTTP ${res.status}`);
         }
         
         // Başarılı
-        console.log('Talep başarıyla tamamlandı');
         alert('Talep başarıyla tamamlandı!');
         
         // Liste yenile
