@@ -201,9 +201,24 @@
       window.location.href = '/login.html';
     });
 
-    // Arama (Enter)
+    // Arama
+    let searchTimeout;
+    $('#search').addEventListener('input', async (e) => {
+      // Önceki timeout'u temizle
+      clearTimeout(searchTimeout);
+      
+      // 300ms sonra arama yap
+      searchTimeout = setTimeout(async () => {
+        await loadLists();
+      }, 300);
+    });
+
+    // Enter tuşu ile anında arama (debounce olmadan)
     $('#search').addEventListener('keydown', async (e) => {
-      if (e.key === 'Enter') await loadLists();
+      if (e.key === 'Enter') {
+        clearTimeout(searchTimeout); // Timeout'u iptal et
+        await loadLists();
+      }
     });
 
     // API helper

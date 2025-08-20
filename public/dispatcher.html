@@ -393,8 +393,23 @@
     function escapeHtml(s){return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
 
     // Arama
-    $('#search').addEventListener('keydown', async (e)=>{
-      if(e.key==='Enter') await loadInbox();
+    let searchTimeout;
+    $('#search').addEventListener('input', async (e) => {
+      // Önceki timeout'u temizle
+      clearTimeout(searchTimeout);
+      
+      // 300ms sonra arama yap
+      searchTimeout = setTimeout(async () => {
+        await loadInbox();
+      }, 300);
+    });
+
+    // Enter tuşu ile anında arama (debounce olmadan)
+    $('#search').addEventListener('keydown', async (e) => {
+      if (e.key === 'Enter') {
+        clearTimeout(searchTimeout); // Timeout'u iptal et
+        await loadInbox();
+      }
     });
 
     // Atama akışı
