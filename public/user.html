@@ -108,6 +108,28 @@
   </nav>
 
   <main class="container py-4">
+    <!-- Kategori Filtreleme -->
+    <div class="row mb-3">
+      <div class="col-md-4">
+        <label class="form-label">Kategori</label>
+        <select id="categorySelect" class="form-select">
+          <option value="">Tüm Kategoriler</option>
+        </select>
+      </div>
+      <div class="col-md-4">
+        <label class="form-label">Alt Kategori</label>
+        <select id="subcategorySelect" class="form-select">
+          <option value="">Tüm Alt Kategoriler</option>
+        </select>
+      </div>
+      <div class="col-md-4">
+        <label class="form-label">Alt-Alt Kategori</label>
+        <select id="subsubcategorySelect" class="form-select">
+          <option value="">Tüm Alt-Alt Kategoriler</option>
+        </select>
+      </div>
+    </div>
+    
     <div class="mb-3">
       <input id="search" class="form-control" placeholder="Konu/açıklama ara (Enter)..." />
     </div>
@@ -177,6 +199,9 @@
     const $ = s => document.querySelector(s);
     let me = null;
     let allTickets = [];
+    let categories = [];
+    let subcategories = [];
+    let subsubcategories = [];
 
     // Oturum kontrolü
     (async () => {
@@ -191,6 +216,12 @@
       }
 
       $('#userInfo').textContent = `${me.full_name} • ${me.email}`;
+
+      // Kategorileri yükle
+      await loadCategories();
+      await loadSubcategories(''); // Tüm kategorileri yükle
+      await loadSubsubcategories(''); // Tüm alt kategorileri yükle
+
       await loadLists();
     })();
 
@@ -232,9 +263,18 @@
     // Listeleme
     async function loadLists() {
       const q = $('#search').value.trim();
+      const categoryId = $('#categorySelect').value;
+      const subcategoryId = $('#subcategorySelect').value;
+      const subsubcategoryId = $('#subsubcategorySelect').value;
+      
+      const params = {};
+      if (q) params.q = q;
+      if (categoryId) params.category_id = categoryId;
+      if (subcategoryId) params.subcategory_id = subcategoryId;
+      if (subsubcategoryId) params.sub_subcategory_id = subsubcategoryId;
 
       // Dashboard ile aynı: tüm talepler
-      allTickets = await fetchTickets(q ? { q } : {});
+      allTickets = await fetchTickets(params);
 
       // Tüm Talepler - Basit öncelik sıralaması
       const allSorted = [...allTickets].sort((a, b) => {
@@ -467,6 +507,79 @@
       }
     }
     function escapeHtml(s){return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
+
+    // Kategorileri yükle
+    async function loadCategories() {
+      try {
+        const res = await fetch('/tickets/categories', { credentials: 'include' });
+        if (res.ok) {
+          categories = await res.json();
+          $('#categorySelect').innerHTML = '<option value="">Tüm Kategoriler</option>' + 
+            categories.map(c => `<option value="${c.id}">${escapeHtml(c.name)}</option>`).join('');
+        }
+      } catch (err) {
+        console.error('Kategoriler yüklenemedi:', err);
+      }
+    }
+
+    // Alt kategorileri yükle
+    async function loadSubcategories(categoryId) {
+      try {
+        if (!categoryId) {
+          $('#subcategorySelect').innerHTML = '<option value="">Tüm Alt Kategoriler</option>';
+          $('#subsubcategorySelect').innerHTML = '<option value="">Tüm Alt-Alt Kategoriler</option>';
+          return;
+        }
+        
+        const res = await fetch(`/tickets/subcategories?category_id=${categoryId}`, { credentials: 'include' });
+        if (res.ok) {
+          subcategories = await res.json();
+          $('#subcategorySelect').innerHTML = '<option value="">Tüm Alt Kategoriler</option>' + 
+            subcategories.map(s => `<option value="${s.id}">${escapeHtml(s.name)}</option>`).join('');
+        }
+        
+        // Alt kategori değiştiğinde alt-alt kategorileri temizle
+        $('#subsubcategorySelect').innerHTML = '<option value="">Tüm Alt-Alt Kategoriler</option>';
+      } catch (err) {
+        console.error('Alt kategoriler yüklenemedi:', err);
+      }
+    }
+
+    // Alt-alt kategorileri yükle
+    async function loadSubsubcategories(subcategoryId) {
+      try {
+        if (!subcategoryId) {
+          $('#subsubcategorySelect').innerHTML = '<option value="">Tüm Alt-Alt Kategoriler</option>';
+          return;
+        }
+        
+        const res = await fetch(`/tickets/subsubcategories?subcategory_id=${subcategoryId}`, { credentials: 'include' });
+        if (res.ok) {
+          subsubcategories = await res.json();
+          $('#subsubcategorySelect').innerHTML = '<option value="">Tüm Alt-Alt Kategoriler</option>' + 
+            subsubcategories.map(s => `<option value="${s.id}">${escapeHtml(s.name)}</option>`).join('');
+        }
+      } catch (err) {
+        console.error('Alt-alt kategoriler yüklenemedi:', err);
+      }
+    }
+
+    // Kategori değişikliklerini dinle
+    $('#categorySelect').addEventListener('change', async (e) => {
+      const categoryId = e.target.value;
+      await loadSubcategories(categoryId);
+      await loadLists(); // Arama ve filtreleme yapılınca listeyi yeniden yükle
+    });
+
+    $('#subcategorySelect').addEventListener('change', async (e) => {
+      const subcategoryId = e.target.value;
+      await loadSubsubcategories(subcategoryId);
+      await loadLists(); // Arama ve filtreleme yapılınca listeyi yeniden yükle
+    });
+
+    $('#subsubcategorySelect').addEventListener('change', async () => {
+      await loadLists(); // Arama ve filtreleme yapılınca listeyi yeniden yükle
+    });
   </script>
 </body>
 </html>

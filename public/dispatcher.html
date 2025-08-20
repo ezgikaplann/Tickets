@@ -111,6 +111,29 @@
     <div class="mb-4">
       <h2 class="h4 mb-2">Tüm Talepler</h2>
       <p class="text-muted mb-3">Sistemdeki tüm talepleri görüntüleyin ve uygun kişilere atayın.</p>
+      
+      <!-- Kategori Filtreleme -->
+      <div class="row mb-3">
+        <div class="col-md-4">
+          <label class="form-label">Kategori</label>
+          <select id="categorySelect" class="form-select">
+            <option value="">Tüm Kategoriler</option>
+          </select>
+        </div>
+        <div class="col-md-4">
+          <label class="form-label">Alt Kategori</label>
+          <select id="subcategorySelect" class="form-select">
+            <option value="">Tüm Alt Kategoriler</option>
+          </select>
+        </div>
+        <div class="col-md-4">
+          <label class="form-label">Alt-Alt Kategori</label>
+          <select id="subsubcategorySelect" class="form-select">
+            <option value="">Tüm Alt-Alt Kategoriler</option>
+          </select>
+        </div>
+      </div>
+      
       <input id="search" class="form-control" placeholder="Konu/açıklama ara (Enter)..." />
     </div>
 
@@ -241,6 +264,9 @@
     let me = null;
     let assignableUsers = [];
     let selectedTicketId = null;
+    let categories = [];
+    let subcategories = [];
+    let subsubcategories = [];
 
     // Giriş/rol kontrolü
     (async () => {
@@ -255,6 +281,9 @@
       }
 
       $('#userInfo').textContent = `${me.full_name} • ${me.role}`;
+
+      // Kategorileri yükle
+      await loadCategories();
 
       // atanabilir kullanıcıları getir
       try {
@@ -279,6 +308,79 @@
       window.location.href = '/login.html';
     });
 
+    // Kategorileri yükle
+    async function loadCategories() {
+      try {
+        const res = await fetch('/tickets/categories', { credentials: 'include' });
+        if (res.ok) {
+          categories = await res.json();
+          $('#categorySelect').innerHTML = '<option value="">Tüm Kategoriler</option>' + 
+            categories.map(c => `<option value="${c.id}">${escapeHtml(c.name)}</option>`).join('');
+        }
+      } catch (err) {
+        console.error('Kategoriler yüklenemedi:', err);
+      }
+    }
+
+    // Alt kategorileri yükle
+    async function loadSubcategories(categoryId) {
+      try {
+        if (!categoryId) {
+          $('#subcategorySelect').innerHTML = '<option value="">Tüm Alt Kategoriler</option>';
+          $('#subsubcategorySelect').innerHTML = '<option value="">Tüm Alt-Alt Kategoriler</option>';
+          return;
+        }
+        
+        const res = await fetch(`/tickets/subcategories?category_id=${categoryId}`, { credentials: 'include' });
+        if (res.ok) {
+          subcategories = await res.json();
+          $('#subcategorySelect').innerHTML = '<option value="">Tüm Alt Kategoriler</option>' + 
+            subcategories.map(s => `<option value="${s.id}">${escapeHtml(s.name)}</option>`).join('');
+        }
+        
+        // Alt kategori değiştiğinde alt-alt kategorileri temizle
+        $('#subsubcategorySelect').innerHTML = '<option value="">Tüm Alt-Alt Kategoriler</option>';
+      } catch (err) {
+        console.error('Alt kategoriler yüklenemedi:', err);
+      }
+    }
+
+    // Alt-alt kategorileri yükle
+    async function loadSubsubcategories(subcategoryId) {
+      try {
+        if (!subcategoryId) {
+          $('#subsubcategorySelect').innerHTML = '<option value="">Tüm Alt-Alt Kategoriler</option>';
+          return;
+        }
+        
+        const res = await fetch(`/tickets/subsubcategories?subcategory_id=${subcategoryId}`, { credentials: 'include' });
+        if (res.ok) {
+          subsubcategories = await res.json();
+          $('#subsubcategorySelect').innerHTML = '<option value="">Tüm Alt-Alt Kategoriler</option>' + 
+            subsubcategories.map(s => `<option value="${s.id}">${escapeHtml(s.name)}</option>`).join('');
+        }
+      } catch (err) {
+        console.error('Alt-alt kategoriler yüklenemedi:', err);
+      }
+    }
+
+    // Kategori değişikliklerini dinle
+    $('#categorySelect').addEventListener('change', async (e) => {
+      const categoryId = e.target.value;
+      await loadSubcategories(categoryId);
+      await loadInbox();
+    });
+
+    $('#subcategorySelect').addEventListener('change', async (e) => {
+      const subcategoryId = e.target.value;
+      await loadSubsubcategories(subcategoryId);
+      await loadInbox();
+    });
+
+    $('#subsubcategorySelect').addEventListener('change', async () => {
+      await loadInbox();
+    });
+
     // Tickets fetch
     async function fetchTickets(params = {}) {
       const qs = new URLSearchParams(params).toString();
@@ -289,7 +391,17 @@
 
     async function loadInbox() {
       const q = $('#search').value.trim();
-      const list = await fetchTickets(q ? { q } : {});
+      const categoryId = $('#categorySelect').value;
+      const subcategoryId = $('#subcategorySelect').value;
+      const subsubcategoryId = $('#subsubcategorySelect').value;
+      
+      const params = {};
+      if (q) params.q = q;
+      if (categoryId) params.category_id = categoryId;
+      if (subcategoryId) params.subcategory_id = subcategoryId;
+      if (subsubcategoryId) params.sub_subcategory_id = subsubcategoryId;
+      
+      const list = await fetchTickets(params);
       
       // Önceliğe göre sırala: HIGH -> MEDIUM -> LOW, iptal edilenler en alta
       const priorityOrder = { 'HIGH': 1, 'MEDIUM': 2, 'LOW': 3 };
