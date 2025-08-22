@@ -123,10 +123,18 @@
     const $ = s => document.querySelector(s);
     let me = null;
 
+    // giriş kontrolü
     (async () => {
       const r = await fetch('/auth/me', { credentials: 'include' });
       if (!r.ok) return window.location.href = '/login.html';
       me = (await r.json()).user;
+
+      // end_user bu sayfaya gelirse kendi paneline yönlendir
+      if (me.role === 'end_user') {
+        window.location.href = '/user.html';
+        return;
+      }
+
       $('#userInfo').textContent = `${me.full_name} • ${me.role}`;
       
       // Dispatcher rolü için ek navigasyon göster
@@ -134,6 +142,7 @@
         $('#dispatcherNav').style.display = 'block';
       }
       
+      // loadCategories çağrısı kaldırıldı - bu sayfada kategori filtreleme yok
       await loadDone();
     })();
 
@@ -144,56 +153,110 @@
     });
 
     async function fetchTickets(params = {}) {
-      const qs = new URLSearchParams(params).toString();
-      const r = await fetch('/tickets' + (qs ? `?${qs}` : ''), { credentials: 'include' });
-      if (!r.ok) throw new Error('tickets failed');
-      return r.json();
+      try {
+        const qs = new URLSearchParams(params).toString();
+        const url = '/tickets' + (qs ? `?${qs}` : '');
+        console.log('API çağrısı yapılıyor:', url);
+        console.log('Parametreler:', params);
+        
+        const r = await fetch(url, { credentials: 'include' });
+        console.log('API yanıt status:', r.status);
+        
+        if (!r.ok) {
+          const errorText = await r.text();
+          console.log('API hata yanıtı:', errorText);
+          throw new Error('tickets failed');
+        }
+        
+        const data = await r.json();
+        console.log('API başarılı yanıt:', data);
+        return data;
+      } catch (err) {
+        console.error('fetchTickets hatası:', err);
+        throw err;
+      }
     }
 
     async function loadDone() {
       try {
-        const [resolved, closed] = await Promise.all([
-          fetchTickets({ status: 'RESOLVED' }),
-          fetchTickets({ status: 'CLOSED' })
-        ]);
+        console.log('=== TAMAMLANAN TALEPLER YÜKLENİYOR ===');
+        console.log('Kullanıcı ID:', me.id);
+        console.log('Kullanıcı Rol:', me.role);
+        
+        // Sadece login olan kullanıcıya özgü RESOLVED ve CLOSED talepleri getir
+        console.log('Kullanıcıya özgü RESOLVED talepler getiriliyor...');
+        const resolvedRes = await fetchTickets({ 
+          status: 'RESOLVED', 
+          assigned_to: me.id 
+        });
+        console.log('RESOLVED API yanıtı:', resolvedRes);
+        
+        console.log('Kullanıcıya özgü CLOSED talepler getiriliyor...');
+        const closedRes = await fetchTickets({ 
+          status: 'CLOSED', 
+          assigned_to: me.id 
+        });
+        console.log('CLOSED API yanıtı:', closedRes);
         
         // updated_at alanı yoksa created_at kullan
-        const list = [...resolved, ...closed].sort((a,b) => {
+        const list = [...resolvedRes, ...closedRes].sort((a,b) => {
           const dateA = a.updated_at || a.created_at;
           const dateB = b.updated_at || b.created_at;
           return new Date(dateB) - new Date(dateA);
         });
         
+        console.log('Toplam kullanıcıya özgü talep sayısı:', list.length);
+        console.log('Sıralanmış liste:', list);
+        console.log('=== TALEPLER YÜKLENDİ ===');
+        
         render(list);
       } catch (err) {
-        console.error('Tamamlanan talepler yüklenemedi:', err);
-        $('#list').innerHTML = '<div class="alert alert-danger">Talepler yüklenirken hata oluştu.</div>';
+        console.error('=== TAMAMLANAN TALEPLER YÜKLENEMEDİ ===');
+        console.error('Error details:', err);
+        $('#list').innerHTML = '<div class="alert alert-danger">Talepler yüklenirken hata oluştu: ' + err.message + '</div>';
       }
     }
 
     function render(list) {
       const el = $('#list'), empty = $('#empty');
+      console.log('=== RENDER FONKSİYONU ===');
+      console.log('Liste uzunluğu:', list.length);
+      console.log('Liste içeriği:', list);
+      
       if (!list.length) { 
+        console.log('Liste boş, empty mesajı gösteriliyor');
         el.innerHTML = ''; 
         empty.classList.remove('d-none'); 
         return; 
       }
+      
+      console.log('Liste dolu, kartlar render ediliyor');
       empty.classList.add('d-none');
       el.innerHTML = list.map(t => card(t)).join('');
+      console.log('Kartlar render edildi');
     }
 
     function card(t) {
+      // Admin rolündeki kullanıcılar için "Bana Ata" butonu - sadece atanmamış taleplerde
+      const assignToMeBtn = (me.role === 'admin' && !t.assigned_to && (t.status === 'OPEN' || t.status === 'NEW')) ? 
+        `<button class="btn btn-sm btn-primary btn-assign-to-me" data-id="${t.id}" onclick="event.stopPropagation(); assignToMe(${t.id})">Bana Ata</button>` : '';
+      
       return `
       <div class="card ticket-card" style="cursor: pointer;" onclick="selectTicket(${t.id})">
         <div class="card-body">
-          <div class="d-flex justify-content-between">
-            <strong>${escapeHtml(t.subject || '(Konu yok)')}</strong>
-            <span class="badge ${badgeClass(t.status)}">${getStatusText(t.status)}</span>
+          <div class="d-flex justify-content-between align-items-start">
+            <div class="flex-grow-1">
+              <strong>${escapeHtml(t.subject||'(Konu yok)')}</strong>
+              <div class="small text-muted">#${t.id} • ${new Date(t.created_at).toLocaleString('tr-TR')} • Öncelik: ${getPriorityText(t.priority)}</div>
+              <div class="small mt-2">${escapeHtml((t.description||'').slice(0,180))}</div>
+            </div>
+            <div class="text-end">
+              <div class="mb-2">
+                <span class="badge ${badgeClass(t.status)}">${getStatusText(t.status)}</span>
+              </div>
+              ${assignToMeBtn}
+            </div>
           </div>
-          <div class="small text-muted">
-            #${t.id} • ${new Date(t.created_at).toLocaleString('tr-TR')} • Öncelik: ${getPriorityText(t.priority)}
-          </div>
-          <div class="small mt-2">${escapeHtml((t.description || '').slice(0,200))}</div>
         </div>
       </div>`;
     }
@@ -235,6 +298,27 @@
     }
 
     function escapeHtml(s){return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
+
+    // Talep seçme fonksiyonu (eğer gerekirse)
+    async function selectTicket(ticketId) {
+      try {
+        console.log('Talep seçiliyor:', ticketId);
+        
+        // Talep bilgilerini getir
+        const ticketRes = await fetch(`/tickets/${ticketId}`, { credentials: 'include' });
+        if (!ticketRes.ok) throw new Error('Talep bilgileri alınamadı');
+        
+        const ticket = await ticketRes.json();
+        console.log('Seçilen talep:', ticket);
+        
+        // Bu sayfada sadece görüntüleme, detay gösterme yok
+        alert(`Talep #${ticket.id} seçildi: ${ticket.subject}`);
+        
+      } catch (err) {
+        console.error('Talep seçme hatası:', err);
+        alert('Talep seçilemedi: ' + err.message);
+      }
+    }
   </script>
 </body>
 </html>

@@ -55,29 +55,53 @@
     });
 
     async function fetchTickets(params = {}) {
-      const qs = new URLSearchParams(params).toString();
-      const r = await fetch('/tickets' + (qs ? `?${qs}` : ''), { credentials: 'include' });
-      if (!r.ok) throw new Error('tickets failed');
-      return r.json();
+      try {
+        const qs = new URLSearchParams(params).toString();
+        const url = '/tickets' + (qs ? `?${qs}` : '');
+        console.log('API çağrısı yapılıyor:', url);
+        console.log('Parametreler:', params);
+        
+        const r = await fetch(url, { credentials: 'include' });
+        console.log('API yanıt status:', r.status);
+        
+        if (!r.ok) {
+          const errorText = await r.text();
+          console.log('API hata yanıtı:', errorText);
+          throw new Error('tickets failed');
+        }
+        
+        const data = await r.json();
+        console.log('API başarılı yanıt:', data);
+        return data;
+      } catch (err) {
+        console.error('fetchTickets hatası:', err);
+        throw err;
+      }
     }
 
     async function loadAssigned() {
       try {
-        // Sadece kullanıcıya atanan talepleri getir
+        console.log('Atanan talepler yükleniyor... Kullanıcı ID:', me.id);
+        
+        // Sadece giriş yapan kullanıcıya atanan talepleri getir
         const list = await fetchTickets({ assigned_to: me.id });
+        console.log('API\'den gelen talepler:', list);
         
         // Sadece ASSIGNED durumundaki talepleri göster
         const assignedTickets = list.filter(t => t.status === 'ASSIGNED');
+        console.log('ASSIGNED durumundaki talepler:', assignedTickets);
         
         render(assignedTickets);
       } catch (err) {
         console.error('Atanan talepler yüklenemedi:', err);
-        $('#list').innerHTML = '<div class="alert alert-danger">Talepler yüklenirken hata oluştu.</div>';
+        $('#list').innerHTML = '<div class="alert alert-danger">Talepler yüklenirken hata oluştu: ' + err.message + '</div>';
       }
     }
 
     function render(list) {
       const el = $('#list'), empty = $('#empty');
+      console.log('Render fonksiyonu çağrıldı, liste uzunluğu:', list.length);
+      
       if (!list.length) { 
         el.innerHTML = ''; 
         empty.classList.remove('d-none'); 
@@ -159,25 +183,47 @@
       if (!confirm('Bu talebi tamamlandı olarak işaretlemek istediğinizden emin misiniz?')) return;
       
       try {
+        console.log('=== TALEP TAMAMLAMA BAŞLADI ===');
+        console.log('Ticket ID:', ticketId);
+        console.log('User ID:', me.id);
+        console.log('User Role:', me.role);
+        
         const res = await fetch(`/tickets/${ticketId}/status`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           credentials: 'include',
-          body: JSON.stringify({ status: 'RESOLVED', note: 'Talep tamamlandı' })
+          body: JSON.stringify({ 
+            status: 'RESOLVED', 
+            note: 'Talep tamamlandı' 
+          })
         });
+        
+        console.log('Response status:', res.status);
         
         if (!res.ok) {
           const err = await res.json().catch(()=>({}));
+          console.log('Error response:', err);
           throw new Error(err.error || `HTTP ${res.status}`);
         }
         
+        const result = await res.json();
+        console.log('Success response:', result);
+        console.log('=== TALEP TAMAMLAMA BAŞARILI ===');
+        
         // Başarılı
-        alert('Talep başarıyla tamamlandı!');
+        alert('Talep başarıyla tamamlandı! Artık "Tamamlananlar" sayfasında görünecek.');
         
         // Liste yenile
         await loadAssigned();
+        
+        // Kullanıcıya tamamlananlar sayfasına gitme seçeneği sun
+        if (confirm('Tamamlananlar sayfasına gitmek ister misiniz?')) {
+          window.location.href = '/done.html';
+        }
+        
       } catch (err) {
-        console.error('Talep tamamlama hatası:', err);
+        console.error('=== TALEP TAMAMLAMA HATASI ===');
+        console.error('Error details:', err);
         alert('Talep tamamlanamadı: ' + err.message);
       }
     });

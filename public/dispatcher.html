@@ -458,20 +458,27 @@
         </div>`;
       }
       
+      // Çözülmüş talepler için atama ve iptal butonları gösterme
+      const isResolved = ['RESOLVED', 'CLOSED'].includes(t.status);
+      
       // Normal talepler için mevcut görünüm + tıklanabilir
-      const assignBtn = `<button class="btn btn-sm btn-primary btn-assign" data-id="${t.id}">Atama Yap</button>`;
-      const cancelBtn = `<button class="btn btn-sm btn-warning btn-cancel ms-1" data-id="${t.id}">İptal Et</button>`;
-      const editBtn = `<button class="btn btn-sm btn-info btn-edit ms-1" data-id="${t.id}">Düzenle</button>`;
+      const assignBtn = !isResolved ? `<button class="btn btn-sm btn-primary btn-assign" data-id="${t.id}">Atama Yap</button>` : '';
+      const cancelBtn = !isResolved ? `<button class="btn btn-sm btn-warning btn-cancel ms-1" data-id="${t.id}">İptal Et</button>` : '';
+      
+      // Düzenleme butonu: İptal olmuş ve çözülmüş talepler dışında tüm taleplerde görünür
+      const editBtn = !['CANCELLED', 'RESOLVED', 'CLOSED'].includes(t.status) ? 
+        `<button class="btn btn-sm btn-info btn-edit ms-1" data-id="${t.id}">Düzenle</button>` : '';
+      
       const deleteBtn = `<button class="btn btn-sm btn-danger btn-delete ms-1" data-id="${t.id}">Sil</button>`;
       
-      // Öncelik seçimi dropdown'ı
-      const prioritySelect = `
+      // Öncelik seçimi dropdown'ı - sadece çözülmemiş taleplerde
+      const prioritySelect = !isResolved ? `
         <select class="form-select form-select-sm priority-select" data-id="${t.id}" style="width: auto;">
           <option value="LOW" ${t.priority === 'LOW' ? 'selected' : ''}>Düşük</option>
           <option value="MEDIUM" ${t.priority === 'MEDIUM' ? 'selected' : ''}>Orta</option>
           <option value="HIGH" ${t.priority === 'HIGH' ? 'selected' : ''}>Yüksek</option>
         </select>
-      `;
+      ` : '';
 
       return `
       <div class="card ticket-card" style="cursor: pointer;" onclick="selectTicket(${t.id})">
@@ -563,9 +570,28 @@
       const assignBtn = e.target.closest('.btn-assign');
       if (assignBtn) {
         e.stopPropagation(); // Event'i durdur, selectTicket çalışmasın
-        selectedTicketId = assignBtn.getAttribute('data-id');
-        $('#assignWarn').classList.add('d-none');
-        bootstrap.Modal.getOrCreateInstance('#assignModal').show();
+        const ticketId = assignBtn.getAttribute('data-id');
+        
+        // Talep durumunu kontrol et
+        try {
+          const ticketRes = await fetch(`/tickets/${ticketId}`, { credentials: 'include' });
+          if (!ticketRes.ok) throw new Error('Talep bilgileri alınamadı');
+          
+          const ticket = await ticketRes.json();
+          
+          // Çözülmüş taleplere atama yapılmasını engelle
+          if (['RESOLVED', 'CLOSED'].includes(ticket.status)) {
+            alert('Çözülmüş taleplere atama yapılamaz!');
+            return;
+          }
+          
+          selectedTicketId = ticketId;
+          $('#assignWarn').classList.add('d-none');
+          bootstrap.Modal.getOrCreateInstance('#assignModal').show();
+          
+        } catch (err) {
+          alert('Talep bilgileri alınamadı: ' + err.message);
+        }
         return;
       }
       

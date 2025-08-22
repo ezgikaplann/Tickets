@@ -278,8 +278,8 @@
     }
 
     function card(t) {
-      // Admin rolündeki kullanıcılar için "Bana Ata" butonu - OPEN ve NEW durumundaki taleplerde
-      const assignToMeBtn = (me.role === 'admin' && (t.status === 'OPEN' || t.status === 'NEW')) ? 
+      // Admin rolündeki kullanıcılar için "Bana Ata" butonu - sadece atanmamış taleplerde
+      const assignToMeBtn = (me.role === 'admin' && !t.assigned_to && (t.status === 'OPEN' || t.status === 'NEW')) ? 
         `<button class="btn btn-sm btn-primary btn-assign-to-me" data-id="${t.id}" onclick="event.stopPropagation(); assignToMe(${t.id})">Bana Ata</button>` : '';
       
       return `
@@ -557,7 +557,12 @@
         
         // Başarılı atama sonrası listeyi yenile
         await loadInbox();
-        alert('Talep başarıyla size atandı!');
+        alert('Talep başarıyla size atandı! Artık "Bana Atananlar" sayfasında görünecek.');
+        
+        // Kullanıcıya atananlar sayfasına gitme seçeneği sun
+        if (confirm('Bana Atananlar sayfasına gitmek ister misiniz?')) {
+          window.location.href = '/assigned.html';
+        }
         
       } catch (err) {
         alert('Talep atanamadı: ' + err.message);
