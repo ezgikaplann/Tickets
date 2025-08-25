@@ -6,12 +6,135 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <link href="https://cdn.jsdelivr.net/npm/bootswatch@5.3.2/dist/lux/bootstrap.min.css" rel="stylesheet" />
   <style>
-    body{background:#f6f7fb}
-    .select-card{border:1px solid #dee2e6;border-radius:.6rem;padding:14px;cursor:pointer;background:#fff}
-    .select-card:hover{border-color:#0d6efd}
-    .select-card.selected{border-color:#0d6efd;box-shadow:0 0 0 .2rem rgba(13,110,253,.15)}
-    .file-chip{display:inline-flex;gap:8px;align-items:center;background:#f1f3f5;border-radius:999px;padding:6px 10px}
-    .file-chip button{border:0;background:transparent}
+    :root {
+      --space-cadet: #2B2D42;
+      --cool-gray: #8D99AE;
+      --anti-flash-white: #EDF2F4;
+    }
+    
+    body {
+      background-color: var(--cool-gray) !important;
+    }
+    
+    .navbar {
+      background-color: var(--space-cadet) !important;
+      border-bottom: 2px solid var(--cool-gray) !important;
+    }
+    
+    .navbar-brand {
+      color: var(--anti-flash-white) !important;
+      font-weight: 600;
+    }
+    
+    .btn-outline-light {
+      border-color: var(--anti-flash-white) !important;
+      color: var(--anti-flash-white) !important;
+    }
+    
+    .btn-outline-light:hover {
+      background-color: var(--anti-flash-white) !important;
+      color: var(--space-cadet) !important;
+    }
+    
+    .card {
+      border: 1px solid var(--cool-gray) !important;
+      box-shadow: 0 2px 8px rgba(43, 45, 66, 0.1) !important;
+      background-color: var(--anti-flash-white) !important;
+    }
+    
+    .select-card {
+      border: 2px solid var(--cool-gray) !important;
+      border-radius: 15px !important;
+      padding: 14px !important;
+      cursor: pointer !important;
+      background: white !important;
+      transition: all 0.3s ease !important;
+    }
+    
+    .select-card:hover {
+      border-color: var(--space-cadet) !important;
+      transform: translateY(-2px) !important;
+      box-shadow: 0 4px 12px rgba(43, 45, 66, 0.15) !important;
+    }
+    
+    .select-card.selected {
+      border-color: var(--space-cadet) !important;
+      box-shadow: 0 0 0 0.2rem rgba(43, 45, 66, 0.25) !important;
+      background-color: var(--anti-flash-white) !important;
+    }
+    
+    .file-chip {
+      display: inline-flex !important;
+      gap: 8px !important;
+      align-items: center !important;
+      background: var(--cool-gray) !important;
+      border-radius: 999px !important;
+      padding: 6px 10px !important;
+      color: white !important;
+    }
+    
+    .file-chip button {
+      border: 0 !important;
+      background: transparent !important;
+      color: white !important;
+    }
+    
+    .form-control {
+      border: 2px solid var(--cool-gray) !important;
+      background-color: white !important;
+      border-radius: 10px !important;
+    }
+    
+    .form-control:focus {
+      border-color: var(--space-cadet) !important;
+      box-shadow: 0 0 0 0.2rem rgba(43, 45, 66, 0.25) !important;
+    }
+    
+    .btn-primary {
+      background-color: var(--space-cadet) !important;
+      border-color: var(--space-cadet) !important;
+      color: var(--anti-flash-white) !important;
+      border-radius: 10px !important;
+    }
+    
+    .btn-primary:hover {
+      background-color: var(--cool-gray) !important;
+      border-color: var(--cool-gray) !important;
+    }
+    
+    .btn-outline-secondary {
+      border-color: var(--cool-gray) !important;
+      color: var(--space-cadet) !important;
+      border-radius: 10px !important;
+    }
+    
+    .btn-outline-secondary:hover {
+      background-color: var(--cool-gray) !important;
+      border-color: var(--cool-gray) !important;
+      color: var(--anti-flash-white) !important;
+    }
+    
+    .form-label {
+      color: var(--space-cadet) !important;
+      font-weight: 500;
+    }
+    
+    .text-muted {
+      color: var(--cool-gray) !important;
+    }
+    
+    .text-danger {
+      color: #dc3545 !important;
+    }
+    
+    h5 {
+      color: var(--space-cadet) !important;
+    }
+    
+    .alert {
+      border-radius: 10px !important;
+      border: none !important;
+    }
   </style>
 </head>
 <body>

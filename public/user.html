@@ -6,25 +6,103 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <link href="https://cdn.jsdelivr.net/npm/bootswatch@5.3.2/dist/lux/bootstrap.min.css" rel="stylesheet" />
   <style>
+    :root {
+      --space-cadet: #2B2D42;
+      --cool-gray: #8D99AE;
+      --anti-flash-white: #EDF2F4;
+    }
+    
+    body {
+      background-color: var(--cool-gray) !important;
+    }
+    
+    .navbar {
+      background-color: var(--space-cadet) !important;
+      border-bottom: 2px solid var(--cool-gray) !important;
+    }
+    
+    .navbar-brand {
+      color: var(--anti-flash-white) !important;
+      font-weight: 600;
+    }
+    
+    .btn-primary {
+      background-color: var(--space-cadet) !important;
+      border-color: var(--space-cadet) !important;
+      color: var(--anti-flash-white) !important;
+    }
+    
+    .btn-primary:hover {
+      background-color: var(--cool-gray) !important;
+      border-color: var(--cool-gray) !important;
+    }
+    
+    .btn-outline-secondary {
+      border-color: var(--cool-gray) !important;
+      color: var(--anti-flash-white) !important;
+    }
+    
+    .btn-outline-secondary:hover {
+      background-color: var(--cool-gray) !important;
+      border-color: var(--cool-gray) !important;
+      color: var(--space-cadet) !important;
+    }
+    
+    .card {
+      border: 1px solid var(--cool-gray) !important;
+      box-shadow: 0 2px 8px rgba(43, 45, 66, 0.1) !important;
+    }
+    
+    .card-header {
+      background-color: var(--space-cadet) !important;
+      color: var(--anti-flash-white) !important;
+      border-bottom: 1px solid var(--cool-gray) !important;
+    }
+    
+    .ticket-card {
+      background-color: #F4F4F9 !important;
+      border: 3px solid var(--cool-gray) !important;
+      border-radius: 15px !important;
+    }
+    
     .ticket-card:hover {
-      background-color: #f8f9fa;
-      transform: translateY(-1px);
-      transition: all 0.2s ease;
+      background-color: #e8e8f0 !important;
+      transform: translateY(-2px) !important;
+      box-shadow: 0 4px 12px rgba(43, 45, 66, 0.15) !important;
+      transition: all 0.3s ease !important;
+      border-color: var(--space-cadet) !important;
+      border-width: 3px !important;
+    }
+    
+    .form-control, .form-select {
+      border: 1px solid var(--cool-gray) !important;
+      background-color: var(--cool-gray) !important;
+      color: white !important;
+    }
+    
+    .form-control::placeholder {
+      color: rgba(255, 255, 255, 0.8) !important;
+    }
+    
+    .form-control:focus, .form-select:focus {
+      border-color: var(--space-cadet) !important;
+      box-shadow: 0 0 0 0.2rem rgba(43, 45, 66, 0.25) !important;
+      background-color: var(--cool-gray) !important;
+      color: white !important;
     }
     
     .message-bubble {
       word-wrap: break-word;
-      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+      box-shadow: 0 2px 6px rgba(43, 45, 66, 0.15) !important;
     }
     
     .message-header {
-      border-bottom: 1px solid rgba(255,255,255,0.2);
+      border-bottom: 1px solid rgba(255,255,255,0.2) !important;
       padding-bottom: 0.5rem;
     }
     
     .message-content {
       line-height: 1.4;
-      /* Tüm mesaj içerikleri için beyaz yazı */
       color: #ffffff !important;
     }
     
@@ -32,48 +110,47 @@
       font-size: 0.8rem;
     }
     
-    /* Mesaj baloncukları için farklı renkler - her kullanıcı için farklı */
+    /* Mesaj baloncukları için yeni renk paleti */
     .message-bubble.bg-primary {
-      background-color: #007bff !important;
+      background-color: var(--space-cadet) !important;
     }
     
     .message-bubble.bg-success {
-      background-color: #28a745 !important;
+      background-color: var(--cool-gray) !important;
     }
     
     .message-bubble.bg-info {
-      background-color: #17a2b8 !important;
+      background-color: #5A6B7A !important;
     }
     
     .message-bubble.bg-warning {
-      background-color: #ffc107 !important;
+      background-color: #7A8B9A !important;
     }
     
     .message-bubble.bg-danger {
-      background-color: #dc3545 !important;
+      background-color: #6B7A8B !important;
     }
     
     .message-bubble.bg-secondary {
-      background-color: #6c757d !important;
+      background-color: #4A5B6A !important;
     }
     
     .message-bubble.bg-dark {
-      background-color: #343a40 !important;
+      background-color: var(--space-cadet) !important;
     }
     
     .message-bubble.bg-purple {
-      background-color: #6f42c1 !important;
+      background-color: #5B6A7A !important;
     }
     
     .message-bubble.bg-teal {
-      background-color: #20c997 !important;
+      background-color: #6A7A8B !important;
     }
     
     .message-bubble.bg-orange {
-      background-color: #fd7e14 !important;
+      background-color: #7A8B9A !important;
     }
     
-    /* Tüm mesaj baloncuklarında beyaz yazı */
     .message-bubble .message-content,
     .message-bubble .message-header small,
     .message-bubble .message-time small {
@@ -81,16 +158,157 @@
     }
     
     #messageList::-webkit-scrollbar {
-      width: 6px;
+      width: 8px;
     }
     
     #messageList::-webkit-scrollbar-track {
-      background: #f1f1f1;
+      background: var(--anti-flash-white);
     }
     
     #messageList::-webkit-scrollbar-thumb {
-      background: #c1c1c1;
-      border-radius: 3px;
+      background: var(--cool-gray);
+      border-radius: 4px;
+    }
+    
+    #messageList::-webkit-scrollbar-thumb:hover {
+      background: var(--space-cadet);
+    }
+    
+    .badge {
+      font-weight: 500;
+    }
+    
+    /* Durum badge'leri için daha canlı renkler */
+    .badge.bg-primary {
+      background-color: #007bff !important;
+      color: white !important;
+      font-weight: 600 !important;
+      padding: 8px 12px !important;
+      border-radius: 20px !important;
+    }
+    
+    .badge.bg-info {
+      background-color: #17a2b8 !important;
+      color: white !important;
+      font-weight: 600 !important;
+      padding: 8px 12px !important;
+      border-radius: 20px !important;
+    }
+    
+    .badge.bg-success {
+      background-color: #28a745 !important;
+      color: white !important;
+      font-weight: 600 !important;
+      padding: 8px 12px !important;
+      border-radius: 20px !important;
+    }
+    
+    .badge.bg-warning {
+      background-color: #ffc107 !important;
+      color: #212529 !important;
+      font-weight: 600 !important;
+      padding: 8px 12px !important;
+      border-radius: 20px !important;
+    }
+    
+    .badge.bg-danger {
+      background-color: #dc3545 !important;
+      color: white !important;
+      font-weight: 600 !important;
+      padding: 8px 12px !important;
+      border-radius: 20px !important;
+    }
+    
+    .badge.bg-secondary {
+      background-color: #6c757d !important;
+      color: white !important;
+      font-weight: 600 !important;
+      padding: 8px 12px !important;
+      border-radius: 20px !important;
+    }
+    
+    .badge.bg-dark {
+      background-color: #343a40 !important;
+      color: white !important;
+      font-weight: 600 !important;
+      padding: 8px 12px !important;
+      border-radius: 20px !important;
+    }
+    
+    /* Mesaj baloncukları için daha canlı renkler */
+    .message-bubble.bg-primary {
+      background: linear-gradient(135deg, #007bff, #0056b3) !important;
+      border: 2px solid #0056b3 !important;
+    }
+    
+    .message-bubble.bg-success {
+      background: linear-gradient(135deg, #28a745, #1e7e34) !important;
+      border: 2px solid #1e7e34 !important;
+    }
+    
+    .message-bubble.bg-info {
+      background: linear-gradient(135deg, #17a2b8, #117a8b) !important;
+      border: 2px solid #117a8b !important;
+    }
+    
+    .message-bubble.bg-warning {
+      background: linear-gradient(135deg, #ffc107, #e0a800) !important;
+      border: 2px solid #e0a800 !important;
+    }
+    
+    .message-bubble.bg-danger {
+      background: linear-gradient(135deg, #dc3545, #c82333) !important;
+      border: 2px solid #c82333 !important;
+    }
+    
+    .message-bubble.bg-secondary {
+      background: linear-gradient(135deg, #6c757d, #545b62) !important;
+      border: 2px solid #545b62 !important;
+    }
+    
+    .message-bubble.bg-dark {
+      background: linear-gradient(135deg, #343a40, #212529) !important;
+      border: 2px solid #212529 !important;
+    }
+    
+    .message-bubble.bg-purple {
+      background: linear-gradient(135deg, #6f42c1, #5a2d91) !important;
+      border: 2px solid #5a2d91 !important;
+    }
+    
+    .message-bubble.bg-teal {
+      background: linear-gradient(135deg, #20c997, #1a9f7a) !important;
+      border: 2px solid #1a9f7a !important;
+    }
+    
+    .message-bubble.bg-orange {
+      background: linear-gradient(135deg, #fd7e14, #e55a00) !important;
+      border: 2px solid #e55a00 !important;
+    }
+    
+    .text-muted {
+      color: var(--cool-gray) !important;
+    }
+    
+    h2, h4, h6 {
+      color: var(--space-cadet) !important;
+    }
+    
+    .form-label {
+      color: var(--space-cadet) !important;
+      font-weight: 500;
+    }
+    
+    .btn-close {
+      filter: invert(1) !important;
+    }
+    
+    .border-bottom, .border-top {
+      border-color: var(--cool-gray) !important;
+    }
+    
+    .input-group .btn {
+      border-left: 1px solid var(--cool-gray) !important;
     }
   </style>
 </head>
@@ -108,90 +326,81 @@
   </nav>
 
   <main class="container py-4">
-    <!-- Kategori Filtreleme -->
-    <div class="row mb-3">
-      <div class="col-md-4">
-        <label class="form-label">Kategori</label>
-        <select id="categorySelect" class="form-select">
-          <option value="">Tüm Kategoriler</option>
-        </select>
+    <div class="mb-4">
+      <h2 class="h4 mb-2">Taleplerim</h2>
+      
+      
+      <!-- Kategori Filtreleme -->
+      <div class="row mb-3">
+        <div class="col-md-4">
+          <label class="form-label">Kategori</label>
+          <select id="categorySelect" class="form-select">
+            <option value="">Tüm Kategoriler</option>
+          </select>
+        </div>
+        <div class="col-md-4">
+          <label class="form-label">Alt Kategori</label>
+          <select id="subcategorySelect" class="form-select">
+            <option value="">Tüm Alt Kategoriler</option>
+          </select>
+        </div>
+        <div class="col-md-4">
+          <label class="form-label">Alt-Alt Kategori</label>
+          <select id="subsubcategorySelect" class="form-select">
+            <option value="">Tüm Alt-Alt Kategoriler</option>
+          </select>
+        </div>
       </div>
-      <div class="col-md-4">
-        <label class="form-label">Alt Kategori</label>
-        <select id="subcategorySelect" class="form-select">
-          <option value="">Tüm Alt Kategoriler</option>
-        </select>
-      </div>
-      <div class="col-md-4">
-        <label class="form-label">Alt-Alt Kategori</label>
-        <select id="subsubcategorySelect" class="form-select">
-          <option value="">Tüm Alt-Alt Kategoriler</option>
-        </select>
-      </div>
-    </div>
-    
-    <div class="mb-3">
+      
       <input id="search" class="form-control" placeholder="Konu/açıklama ara (Enter)..." />
     </div>
 
-    <div class="row">
-      <!-- Sol taraf: Talep listesi -->
-      <div class="col-md-6">
-        <div id="list-all" class="vstack gap-2"></div>
-        <div id="empty-all" class="text-muted d-none">Kayıt yok.</div>
+    <!-- Mesajlaşma paneli - sadece talep seçildiğinde görünür -->
+    <div id="chatPanel" class="card mb-3" style="display: none;">
+      <div class="card-header d-flex justify-content-between align-items-center">
+        <h6 class="mb-0" id="chatTitle">Talep Detayı</h6>
+        <button type="button" class="btn-close" id="closeChat"></button>
       </div>
       
-      <!-- Sağ taraf: Mesajlaşma paneli -->
-      <div class="col-md-6">
-        <div id="chatPanel" class="card" style="display: none;">
-          <div class="card-header d-flex justify-content-between align-items-center">
-            <h6 class="mb-0" id="chatTitle">Talep Detayı</h6>
-            <button type="button" class="btn-close" id="closeChat"></button>
-          </div>
-          
-          <div class="card-body p-0">
-            <!-- Talep bilgileri -->
-            <div class="p-3 border-bottom">
-              <h6 id="ticketSubject">Konu</h6>
-              <p class="small text-muted mb-2" id="ticketDescription">Açıklama</p>
-              <div class="row">
-                <div class="col-6">
-                  <small class="text-muted">Durum:</small><br>
-                  <span id="ticketStatus" class="badge bg-secondary">Durum</span>
-                </div>
-                <div class="col-6">
-                  <small class="text-muted">Öncelik:</small><br>
-                  <span id="ticketPriority" class="badge bg-warning">Öncelik</span>
-                </div>
-              </div>
+      <div class="card-body p-0">
+        <!-- Talep bilgileri -->
+        <div class="p-3 border-bottom">
+          <h6 id="ticketSubject">Konu</h6>
+          <p class="small text-muted mb-2" id="ticketDescription">Açıklama</p>
+          <div class="row">
+            <div class="col-6">
+              <small class="text-muted">Durum:</small><br>
+              <span id="ticketStatus" class="badge bg-secondary">Durum</span>
             </div>
-            
-            <!-- Mesaj listesi -->
-            <div id="messageList" class="p-3" style="height: 300px; overflow-y: auto;">
-              <div class="text-center text-muted">
-                <small>Henüz mesaj yok</small>
-              </div>
-            </div>
-            
-            <!-- Mesaj gönderme -->
-            <div class="p-3 border-top">
-              <div class="input-group">
-                <input type="text" class="form-control" id="messageInput" placeholder="Mesaj yazın..." />
-                <button class="btn btn-primary" type="button" id="sendMessage">
-                  <i class="bi bi-send"></i> Gönder
-                </button>
-              </div>
+            <div class="col-6">
+              <small class="text-muted">Öncelik:</small><br>
+              <span id="ticketPriority" class="badge bg-warning">Öncelik</span>
             </div>
           </div>
         </div>
         
-        <!-- Mesajlaşma paneli kapalıyken gösterilecek mesaj -->
-        <div id="noChatSelected" class="text-center text-muted py-5">
-          <i class="bi bi-chat-dots fs-1"></i>
-          <p class="mt-2">Mesajlaşmak için bir talep seçin</p>
+        <!-- Mesaj listesi -->
+        <div id="messageList" class="p-3" style="height: 300px; overflow-y: auto;">
+          <div class="text-center text-muted">
+            <small>Henüz mesaj yok</small>
+          </div>
+        </div>
+        
+        <!-- Mesaj gönderme -->
+        <div class="p-3 border-top">
+          <div class="input-group">
+            <input type="text" class="form-control" id="messageInput" placeholder="Mesaj yazın..." />
+            <button class="btn btn-primary" type="button" id="sendMessage">
+              <i class="bi bi-send"></i> Gönder
+            </button>
+          </div>
         </div>
       </div>
     </div>
+
+    <!-- Talep listesi - tüm sayfayı kaplar -->
+    <div id="list" class="row g-3"></div>
+    <div id="empty" class="text-muted d-none">Kayıt yok.</div>
   </main>
 
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
@@ -286,7 +495,7 @@
         return priorityOrder[aPriority] - priorityOrder[bPriority];
       });
       
-      render('#list-all', '#empty-all', allSorted);
+      render('#list', '#empty', allSorted);
 
       // Benim Taleplerim - Basit öncelik sıralaması
       const mine = allTickets
@@ -360,7 +569,6 @@
         
         // Mesajlaşma panelini göster
         $('#chatPanel').style.display = 'block';
-        $('#noChatSelected').style.display = 'none';
         
         // Mesaj listesini scroll et
         setTimeout(() => {
@@ -491,7 +699,6 @@
     // Chat panelini kapat
     $('#closeChat').addEventListener('click', () => {
       $('#chatPanel').style.display = 'none';
-      $('#noChatSelected').style.display = 'block';
       selectedTicket = null;
       messages = [];
     });

@@ -6,10 +6,85 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <link href="https://cdn.jsdelivr.net/npm/bootswatch@5.3.2/dist/lux/bootstrap.min.css" rel="stylesheet" />
   <style>
+    :root {
+      --space-cadet: #2B2D42;
+      --cool-gray: #8D99AE;
+      --anti-flash-white: #EDF2F4;
+    }
+    
+    body {
+      background-color: var(--cool-gray) !important;
+    }
+    
+    .navbar {
+      background-color: var(--space-cadet) !important;
+      border-bottom: 2px solid var(--cool-gray) !important;
+    }
+    
+    .navbar-brand {
+      color: var(--anti-flash-white) !important;
+      font-weight: 600;
+    }
+    
+    .nav-link {
+      color: var(--anti-flash-white) !important;
+    }
+    
+    .nav-link:hover {
+      color: var(--cool-gray) !important;
+    }
+    
+    .nav-link.active {
+      color: var(--anti-flash-white) !important;
+      background-color: var(--cool-gray) !important;
+      border-radius: 5px !important;
+    }
+    
+    .btn-outline-secondary {
+      border-color: var(--cool-gray) !important;
+      color: var(--anti-flash-white) !important;
+    }
+    
+    .btn-outline-secondary:hover {
+      background-color: var(--cool-gray) !important;
+      border-color: var(--cool-gray) !important;
+      color: var(--space-cadet) !important;
+    }
+    
+    .ticket-card {
+      background-color: #F4F4F9 !important;
+      border: 3px solid var(--cool-gray) !important;
+      border-radius: 15px !important;
+    }
+    
     .ticket-card:hover {
-      background-color: #f8f9fa;
-      transform: translateY(-1px);
-      transition: all 0.2s ease;
+      background-color: #e8e8f0 !important;
+      transform: translateY(-2px) !important;
+      box-shadow: 0 4px 12px rgba(43, 45, 66, 0.15) !important;
+      transition: all 0.3s ease !important;
+      border-color: var(--space-cadet) !important;
+      border-width: 3px !important;
+    }
+    
+    .alert {
+      border-radius: 10px !important;
+      border: none !important;
+    }
+    
+    .alert-info {
+      background-color: var(--anti-flash-white) !important;
+      color: var(--space-cadet) !important;
+      border: 2px solid var(--cool-gray) !important;
+    }
+    
+    .text-muted {
+      color: var(--cool-gray) !important;
+    }
+    
+    .alert-danger {
+      background-color: #f8d7da !important;
+      color: #721c24 !important;
+      border: 2px solid #f5c6cb !important;
     }
   </style>
 </head>

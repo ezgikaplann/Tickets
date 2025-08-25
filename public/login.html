@@ -6,8 +6,14 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <link href="https://cdn.jsdelivr.net/npm/bootswatch@5.3.2/dist/lux/bootstrap.min.css" rel="stylesheet"/>
   <style>
+    :root {
+      --space-cadet: #2B2D42;
+      --cool-gray: #8D99AE;
+      --anti-flash-white: #EDF2F4;
+    }
+    
     body {
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      background: linear-gradient(135deg, var(--space-cadet) 0%, var(--cool-gray) 100%);
       min-height: 100vh;
       display: flex;
       align-items: center;
@@ -15,42 +21,45 @@
     }
     
     .auth-container {
-      background: white;
+      background: var(--anti-flash-white);
       border-radius: 15px;
-      box-shadow: 0 15px 35px rgba(0,0,0,0.1);
+      box-shadow: 0 15px 35px rgba(43, 45, 66, 0.2);
       overflow: hidden;
       width: 100%;
-      max-width: 900px;
+      max-width: 500px;
+      border: 2px solid var(--cool-gray);
     }
     
     .auth-tabs {
       display: flex;
-      border-bottom: 1px solid #eee;
+      border-bottom: 2px solid var(--cool-gray);
     }
     
     .auth-tab {
       flex: 1;
-      padding: 20px;
+      padding: 15px;
       text-align: center;
       cursor: pointer;
       transition: all 0.3s ease;
       border: none;
       background: none;
       font-weight: 500;
+      color: var(--space-cadet);
     }
     
     .auth-tab.active {
-      background: #f8f9fa;
-      color: #007bff;
-      border-bottom: 3px solid #007bff;
+      background: var(--cool-gray);
+      color: var(--anti-flash-white);
+      border-bottom: 3px solid var(--space-cadet);
     }
     
     .auth-tab:hover:not(.active) {
-      background: #f8f9fa;
+      background: var(--cool-gray);
+      color: var(--anti-flash-white);
     }
     
     .auth-content {
-      padding: 40px;
+      padding: 30px;
     }
     
     .auth-form {
@@ -63,17 +72,21 @@
     
     .form-control {
       border-radius: 10px;
-      border: 2px solid #e9ecef;
+      border: 2px solid var(--cool-gray);
       padding: 12px 15px;
       transition: all 0.3s ease;
+      background-color: white;
     }
     
     .form-control:focus {
-      border-color: #007bff;
-      box-shadow: 0 0 0 0.2rem rgba(0,123,255,0.25);
+      border-color: var(--space-cadet);
+      box-shadow: 0 0 0 0.2rem rgba(43, 45, 66, 0.25);
     }
     
     .btn-primary {
+      background-color: var(--space-cadet) !important;
+      border-color: var(--space-cadet) !important;
+      color: var(--anti-flash-white) !important;
       border-radius: 10px;
       padding: 12px 30px;
       font-weight: 600;
@@ -81,13 +94,24 @@
     }
     
     .btn-primary:hover {
+      background-color: var(--cool-gray) !important;
+      border-color: var(--cool-gray) !important;
       transform: translateY(-2px);
-      box-shadow: 0 5px 15px rgba(0,123,255,0.4);
+      box-shadow: 0 5px 15px rgba(43, 45, 66, 0.4);
     }
     
     .alert {
       border-radius: 10px;
       border: none;
+    }
+    
+    .form-label {
+      color: var(--space-cadet) !important;
+      font-weight: 500;
+    }
+    
+    .text-muted {
+      color: var(--cool-gray) !important;
     }
   </style>
 </head>

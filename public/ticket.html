@@ -6,12 +6,152 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <link href="https://cdn.jsdelivr.net/npm/bootswatch@5.3.2/dist/lux/bootstrap.min.css" rel="stylesheet" />
   <style>
-    .chat { max-height: 50vh; overflow-y: auto; }
-    .msg-bubble { border-radius: 12px; padding: .5rem .75rem; display: inline-block; max-width: 80%; }
-    .msg-me     { background:#e7f1ff; align-self: flex-end; }
-    .msg-other  { background:#f1f1f1; }
-    .msg-time   { font-size: .75rem; color:#6c757d; }
-    .ticket-card:hover{ box-shadow:0 0 0 2px rgba(0,0,0,.05) inset; cursor:pointer; }
+    :root {
+      --space-cadet: #2B2D42;
+      --cool-gray: #8D99AE;
+      --anti-flash-white: #EDF2F4;
+    }
+    
+    body {
+      background-color: var(--cool-gray) !important;
+    }
+    
+    .navbar {
+      background-color: var(--space-cadet) !important;
+      border-bottom: 2px solid var(--cool-gray) !important;
+    }
+    
+    .navbar-brand {
+      color: var(--anti-flash-white) !important;
+      font-weight: 600;
+    }
+    
+    .btn-outline-secondary {
+      border-color: var(--cool-gray) !important;
+      color: var(--anti-flash-white) !important;
+    }
+    
+    .btn-outline-secondary:hover {
+      background-color: var(--cool-gray) !important;
+      border-color: var(--cool-gray) !important;
+      color: var(--space-cadet) !important;
+    }
+    
+    .card {
+      border: 1px solid var(--cool-gray) !important;
+      box-shadow: 0 2px 8px rgba(43, 45, 66, 0.1) !important;
+      background-color: var(--anti-flash-white) !important;
+    }
+    
+    .card-header {
+      background-color: var(--space-cadet) !important;
+      color: var(--anti-flash-white) !important;
+      border-bottom: 1px solid var(--cool-gray) !important;
+      font-weight: 600 !important;
+    }
+    
+    .chat { 
+      max-height: 50vh; 
+      overflow-y: auto; 
+    }
+    
+    .msg-bubble { 
+      border-radius: 12px; 
+      padding: .5rem .75rem; 
+      display: inline-block; 
+      max-width: 80%; 
+    }
+    
+    .msg-me { 
+      background: var(--space-cadet) !important; 
+      color: var(--anti-flash-white) !important;
+      align-self: flex-end; 
+    }
+    
+    .msg-other { 
+      background: var(--cool-gray) !important; 
+      color: var(--anti-flash-white) !important;
+    }
+    
+    .msg-time { 
+      font-size: .75rem; 
+      color: var(--cool-gray) !important; 
+    }
+    
+    .ticket-card {
+      background-color: #F4F4F9 !important;
+      border: 3px solid var(--cool-gray) !important;
+      border-radius: 15px !important;
+    }
+    
+    .ticket-card:hover { 
+      box-shadow: 0 0 0 2px rgba(43, 45, 66, 0.1) inset; 
+      cursor: pointer; 
+      border-color: var(--space-cadet) !important;
+    }
+    
+    .form-control {
+      border: 2px solid var(--cool-gray) !important;
+      background-color: white !important;
+      border-radius: 10px !important;
+    }
+    
+    .form-control:focus {
+      border-color: var(--space-cadet) !important;
+      box-shadow: 0 0 0 0.2rem rgba(43, 45, 66, 0.25) !important;
+    }
+    
+    .btn-primary {
+      background-color: var(--space-cadet) !important;
+      border-color: var(--space-cadet) !important;
+      color: var(--anti-flash-white) !important;
+      border-radius: 10px !important;
+    }
+    
+    .btn-primary:hover {
+      background-color: var(--cool-gray) !important;
+      border-color: var(--cool-gray) !important;
+    }
+    
+    .alert {
+      border-radius: 10px !important;
+      border: none !important;
+    }
+    
+    .alert-danger {
+      background-color: #f8d7da !important;
+      color: #721c24 !important;
+      border: 2px solid #f5c6cb !important;
+    }
+    
+    .text-muted {
+      color: var(--cool-gray) !important;
+    }
+    
+    .badge {
+      font-weight: 500 !important;
+      padding: 8px 12px !important;
+      border-radius: 20px !important;
+    }
+    
+    .badge.bg-secondary {
+      background-color: #6c757d !important;
+      color: white !important;
+    }
+    
+    .badge.bg-info {
+      background-color: #17a2b8 !important;
+      color: white !important;
+    }
+    
+    .badge.bg-warning {
+      background-color: #ffc107 !important;
+      color: #212529 !important;
+    }
+    
+    .form-text {
+      color: var(--cool-gray) !important;
+    }
   </style>
 </head>
 <body class="bg-light">
