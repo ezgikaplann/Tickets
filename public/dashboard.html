@@ -4,287 +4,82 @@
   <meta charset="utf-8" />
   <title>HelpNest · Gelen Kutusu</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <!-- Bootswatch (Lux) + Bootstrap Icons -->
   <link href="https://cdn.jsdelivr.net/npm/bootswatch@5.3.2/dist/lux/bootstrap.min.css" rel="stylesheet" />
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet" />
   <style>
-    :root {
-      --space-cadet: #2B2D42;
-      --cool-gray: #8D99AE;
-      --anti-flash-white: #EDF2F4;
+    :root{
+      --brand-1:#7A3DFC; /* violet */
+      --brand-2:#00E5FF; /* cyan */
+      --brand-3:#E429E8; /* magenta */
+      --ink:#0f172a;     /* deep text */
+      --muted:#64748b;   /* slate */
+      --bg:#f7f8fc;      /* page bg */
+      --card:#ffffff;    /* card bg */
     }
-    
-    body {
-      background-color: var(--cool-gray) !important;
-    }
-    
-    .navbar {
-      background-color: var(--space-cadet) !important;
-      border-bottom: 2px solid var(--cool-gray) !important;
-    }
-    
-    .navbar-brand {
-      color: var(--anti-flash-white) !important;
-      font-weight: 600;
-    }
-    
-    .btn-primary {
-      background-color: var(--space-cadet) !important;
-      border-color: var(--space-cadet) !important;
-      color: var(--anti-flash-white) !important;
-    }
-    
-    .btn-primary:hover {
-      background-color: var(--cool-gray) !important;
-      border-color: var(--cool-gray) !important;
-    }
-    
-    .btn-outline-secondary {
-      border-color: var(--cool-gray) !important;
-      color: var(--anti-flash-white) !important;
-    }
-    
-    .btn-outline-secondary:hover {
-      background-color: var(--cool-gray) !important;
-      border-color: var(--cool-gray) !important;
-      color: var(--space-cadet) !important;
-    }
-    
-    .card {
-      border: 1px solid var(--cool-gray) !important;
-      box-shadow: 0 2px 8px rgba(43, 45, 66, 0.1) !important;
-    }
-    
-    .card-header {
-      background-color: var(--space-cadet) !important;
-      color: var(--anti-flash-white) !important;
-      border-bottom: 1px solid var(--cool-gray) !important;
-    }
-    
-    .ticket-card {
-      background-color: #F4F4F9 !important;
-      border: 3px solid var(--cool-gray) !important;
-      border-radius: 15px !important;
-    }
-    
-    .ticket-card:hover {
-      background-color: #e8e8f0 !important;
-      transform: translateY(-2px) !important;
-      box-shadow: 0 4px 12px rgba(43, 45, 66, 0.15) !important;
-      transition: all 0.3s ease !important;
-      border-color: var(--space-cadet) !important;
-      border-width: 3px !important;
-    }
-    
-    .form-control, .form-select {
-      border: 1px solid var(--cool-gray) !important;
-      background-color: var(--cool-gray) !important;
-      color: white !important;
-    }
-    
-    .form-control::placeholder {
-      color: rgba(255, 255, 255, 0.8) !important;
-    }
-    
-    .form-control:focus, .form-select:focus {
-      border-color: var(--space-cadet) !important;
-      box-shadow: 0 0 0 0.2rem rgba(43, 45, 66, 0.25) !important;
-      background-color: var(--cool-gray) !important;
-      color: white !important;
-    }
-    
-    .message-bubble {
-      word-wrap: break-word;
-      box-shadow: 0 2px 6px rgba(43, 45, 66, 0.15) !important;
-    }
-    
-    .message-header {
-      border-bottom: 1px solid rgba(255,255,255,0.2) !important;
-      padding-bottom: 0.5rem;
-    }
-    
-    .message-content {
-      line-height: 1.4;
-      color: #ffffff !important;
-    }
-    
-    .message-time {
-      font-size: 0.8rem;
-    }
-    
-    /* Mesaj baloncukları için daha canlı renkler */
-    .message-bubble.bg-primary {
-      background: linear-gradient(135deg, #007bff, #0056b3) !important;
-      border: 2px solid #0056b3 !important;
-    }
-    
-    .message-bubble.bg-success {
-      background: linear-gradient(135deg, #28a745, #1e7e34) !important;
-      border: 2px solid #1e7e34 !important;
-    }
-    
-    .message-bubble.bg-info {
-      background: linear-gradient(135deg, #17a2b8, #117a8b) !important;
-      border: 2px solid #117a8b !important;
-    }
-    
-    .message-bubble.bg-warning {
-      background: linear-gradient(135deg, #ffc107, #e0a800) !important;
-      border: 2px solid #e0a800 !important;
-    }
-    
-    .message-bubble.bg-danger {
-      background: linear-gradient(135deg, #dc3545, #c82333) !important;
-      border: 2px solid #c82333 !important;
-    }
-    
-    .message-bubble.bg-secondary {
-      background: linear-gradient(135deg, #6c757d, #545b62) !important;
-      border: 2px solid #545b62 !important;
-    }
-    
-    .message-bubble.bg-dark {
-      background: linear-gradient(135deg, #343a40, #212529) !important;
-      border: 2px solid #212529 !important;
-    }
-    
-    .message-bubble.bg-purple {
-      background: linear-gradient(135deg, #6f42c1, #5a2d91) !important;
-      border: 2px solid #5a2d91 !important;
-    }
-    
-    .message-bubble.bg-teal {
-      background: linear-gradient(135deg, #20c997, #1a9f7a) !important;
-      border: 2px solid #1a9f7a !important;
-    }
-    
-    .message-bubble.bg-orange {
-      background: linear-gradient(135deg, #fd7e14, #e55a00) !important;
-      border: 2px solid #e55a00 !important;
-    }
-    
-    .message-bubble .message-content,
-    .message-bubble .message-header small,
-    .message-bubble .message-time small {
-      color: #ffffff !important;
-    }
-    
-    #messageList::-webkit-scrollbar {
-      width: 8px;
-    }
-    
-    #messageList::-webkit-scrollbar-track {
-      background: var(--anti-flash-white);
-    }
-    
-    #messageList::-webkit-scrollbar-thumb {
-      background: var(--cool-gray);
-      border-radius: 4px;
-    }
-    
-    #messageList::-webkit-scrollbar-thumb:hover {
-      background: var(--space-cadet);
-    }
-    
-    /* Durum badge'leri için daha canlı renkler */
-    .badge.bg-primary {
-      background-color: #007bff !important;
-      color: white !important;
-      font-weight: 600 !important;
-      padding: 8px 12px !important;
-      border-radius: 20px !important;
-    }
-    
-    .badge.bg-info {
-      background-color: #17a2b8 !important;
-      color: white !important;
-      font-weight: 600 !important;
-      padding: 8px 12px !important;
-      border-radius: 20px !important;
-    }
-    
-    .badge.bg-success {
-      background-color: #28a745 !important;
-      color: white !important;
-      font-weight: 600 !important;
-      padding: 8px 12px !important;
-      border-radius: 20px !important;
-    }
-    
-    .badge.bg-warning {
-      background-color: #ffc107 !important;
-      color: #212529 !important;
-      font-weight: 600 !important;
-      padding: 8px 12px !important;
-      border-radius: 20px !important;
-    }
-    
-    .badge.bg-danger {
-      background-color: #dc3545 !important;
-      color: white !important;
-      font-weight: 600 !important;
-      padding: 8px 12px !important;
-      border-radius: 20px !important;
-    }
-    
-    .badge.bg-secondary {
-      background-color: #6c757d !important;
-      color: white !important;
-      font-weight: 600 !important;
-      padding: 8px 12px !important;
-      border-radius: 20px !important;
-    }
-    
-    .badge.bg-dark {
-      background-color: #343a40 !important;
-      color: white !important;
-      font-weight: 600 !important;
-      padding: 8px 12px !important;
-      border-radius: 20px !important;
-    }
-    
-    .text-muted {
-      color: var(--cool-gray) !important;
-    }
-    
-    h2, h4, h6 {
-      color: var(--space-cadet) !important;
-    }
-    
-    .form-label {
-      color: var(--space-cadet) !important;
-      font-weight: 500;
-    }
-    
-    .btn-close {
-      filter: invert(1) !important;
-    }
-    
-    .border-bottom, .border-top {
-      border-color: var(--cool-gray) !important;
-    }
-    
-    .input-group .btn {
-      border-left: 1px solid var(--cool-gray) !important;
-    }
+    html,body{height:100%}
+    body{background: radial-gradient(1200px 600px at 10% -10%, rgba(122,61,252,.08), transparent 60%),
+                     radial-gradient(900px 500px at 90% 10%, rgba(0,229,255,.10), transparent 60%),
+                     radial-gradient(800px 400px at 40% 110%, rgba(228,41,232,.08), transparent 60%),
+                     var(--bg)!important}
 
-    .nav-link {
-      color: var(--anti-flash-white) !important;
-    }
-    
-    .nav-link:hover {
-      color: var(--cool-gray) !important;
-    }
-    
-    .nav-link.active {
-      color: var(--anti-flash-white) !important;
-      background-color: var(--cool-gray) !important;
-      border-radius: 5px !important;
+    /* NAVBAR */
+    .navbar{backdrop-filter:saturate(150%) blur(8px); background:rgba(255,255,255,.7)!important; border-bottom:1px solid #e9edf5!important}
+    .navbar-brand{font-weight:700; letter-spacing:.2px;}
+
+    /* HEADER RIBBON */
+    .ribbon{border-radius:20px; border:1px solid rgba(0,0,0,.05); background:linear-gradient(135deg, rgba(122,61,252,.12), rgba(0,229,255,.12));}
+
+    /* CARDS */
+    .ticket-card{background:var(--card); border:1px solid #e9edf5; border-left:6px solid transparent; box-shadow:0 10px 30px rgba(2,6,23,.05); transition:transform .18s ease, box-shadow .18s ease}
+    .ticket-card:hover{transform:translateY(-3px); box-shadow:0 18px 40px rgba(2,6,23,.08)}
+    .ticket-card .subject{color:var(--ink); font-weight:600}
+    .ticket-card .excerpt{color:#475569}
+
+    /* STATUS + PRIORITY */
+    .status-pill{font-weight:600; padding:.35rem .6rem; border-radius:999px; border:1px solid #e2e8f0}
+    .s-new{background:#eef2ff; color:#4338ca; border-color:#c7d2fe}
+    .s-assigned{background:#ecfeff; color:#0e7490; border-color:#a5f3fc}
+    .s-resolved{background:#ecfdf5; color:#047857; border-color:#a7f3d0}
+    .s-cancelled{background:#fff1f2; color:#be123c; border-color:#fecdd3}
+    .s-closed{background:#f1f5f9; color:#334155; border-color:#e2e8f0}
+
+    .priority-chip{padding:.2rem .55rem; border-radius:999px; font-size:.75rem; font-weight:700}
+    .p-low{background:#f1f5f9; color:#334155}
+    .p-medium{background:#fef3c7; color:#92400e}
+    .p-high{background:#fee2e2; color:#991b1b}
+
+    /* SEARCH */
+    .search-wrap{position:relative}
+    .search-wrap .bi{position:absolute; left:.75rem; top:50%; transform:translateY(-50%); color:#94a3b8}
+    .search-wrap input{padding-left:2.2rem}
+
+    /* OFFCANVAS / CHAT */
+    .offcanvas{--bs-offcanvas-width:min(560px,100vw)}
+    .message-list{height: 56vh; overflow-y:auto; padding-right:.25rem}
+    .bubble{max-width:78%; padding:.6rem .75rem; border-radius:16px; box-shadow:0 8px 20px rgba(2,6,23,.08)}
+    .bubble-me{margin-left:auto; background:linear-gradient(135deg, var(--brand-1), var(--brand-2)); color:#fff}
+    .bubble-other{background:#f8fafc; color:#0f172a; border:1px solid #e2e8f0}
+    .bubble small{opacity:.8}
+
+    /* SKELETON */
+    .skeleton{position:relative; overflow:hidden; background:#eef2f7; border-radius:12px}
+    .skeleton::after{content:""; position:absolute; inset:0; transform:translateX(-100%); background:linear-gradient(90deg, transparent, rgba(255,255,255,.5), transparent); animation:shimmer 1.2s infinite}
+    @keyframes shimmer{100%{transform:translateX(100%)}}
+
+    /* Responsive tasarım için */
+    @media (max-width: 768px) {
+      .mobile-stack { flex-direction: column; }
+      .mobile-full { width: 100%; }
+      .mobile-text-center { text-align: center; }
+      .ribbon { padding: 1rem !important; }
     }
   </style>
 </head>
-<body class="bg-light">
-  <nav class="navbar bg-white border-bottom">
-    <div class="container-fluid">
-      <span class="navbar-brand">HelpNest</span>
+<body>
+  <nav class="navbar sticky-top">
+    <div class="container-xxl">
+      <a class="navbar-brand" href="#">HelpNest</a>
       <ul class="nav">
         <li class="nav-item"><a class="nav-link active" href="/dashboard.html">Gelen Kutusu</a></li>
         <li class="nav-item"><a class="nav-link" href="/assigned.html">Bana Atananlar</a></li>
@@ -297,38 +92,44 @@
     </div>
   </nav>
 
-  <main class="container py-4">
-    <div class="mb-4">
-      <h2 class="h4 mb-2">Gelen Kutusu</h2>
-      <p class="text-muted mb-3">Sistemdeki tüm talepleri görüntüleyin.</p>
-      
-      <!-- Kategori Filtreleme -->
-      <div class="row mb-3">
-        <div class="col-md-4">
-          <label class="form-label">Kategori</label>
+  <main class="container-xxl py-4">
+    <!-- Header / Filters -->
+    <div class="ribbon p-3 p-md-4 mb-4">
+      <div class="row g-3 align-items-end">
+        <div class="col-12 col-lg-4">
+          <h2 class="h4 mb-1">Gelen Kutusu</h2>
+          <div class="text-muted small">Sistemdeki tüm talepleri görüntüleyin ve yönetin.</div>
+        </div>
+        <div class="col-12 col-md-4 col-lg-2">
+          <label class="form-label mb-1">Kategori</label>
           <select id="categorySelect" class="form-select">
             <option value="">Tüm Kategoriler</option>
           </select>
         </div>
-        <div class="col-md-4">
-          <label class="form-label">Alt Kategori</label>
+        <div class="col-12 col-md-4 col-lg-2">
+          <label class="form-label mb-1">Alt Kategori</label>
           <select id="subcategorySelect" class="form-select">
             <option value="">Tüm Alt Kategoriler</option>
           </select>
         </div>
-        <div class="col-md-4">
-          <label class="form-label">Alt-Alt Kategori</label>
+        <div class="col-12 col-md-4 col-lg-2">
+          <label class="form-label mb-1">Alt-Alt Kategori</label>
           <select id="subsubcategorySelect" class="form-select">
             <option value="">Tüm Alt-Alt Kategoriler</option>
           </select>
         </div>
+        <div class="col-12 col-md-4 col-lg-2">
+          <label class="form-label mb-1">Arama</label>
+          <div class="search-wrap">
+            <i class="bi bi-search"></i>
+            <input id="search" class="form-control" placeholder="Konu/açıklama ara..." />
+          </div>
+        </div>
       </div>
-      
-      <input id="search" class="form-control" placeholder="Konu/açıklama ara (Enter)..." />
     </div>
 
     <!-- Mesajlaşma paneli - sadece talep seçildiğinde görünür -->
-    <div id="chatPanel" class="card mb-3" style="display: none;">
+    <div id="chatPanel" class="card mb-4" style="display: none;">
       <div class="card-header d-flex justify-content-between align-items-center">
         <h6 class="mb-0" id="chatTitle">Talep Detayı</h6>
         <button type="button" class="btn-close" id="closeChat"></button>
@@ -336,43 +137,46 @@
       
       <div class="card-body p-0">
         <!-- Talep bilgileri -->
-        <div class="p-3 border-bottom">
-          <h6 id="ticketSubject">Konu</h6>
-          <p class="small text-muted mb-2" id="ticketDescription">Açıklama</p>
-          <div class="row">
+        <div class="p-4 border-bottom">
+          <h6 id="ticketSubject" class="subject">Konu</h6>
+          <p class="small text-muted mb-3" id="ticketDescription">Açıklama</p>
+          <div class="row g-3">
             <div class="col-6">
-              <small class="text-muted">Durum:</small><br>
-              <span id="ticketStatus" class="badge bg-secondary">Durum</span>
+              <small class="text-muted d-block mb-1">Durum:</small>
+              <span id="ticketStatus" class="status-pill s-new">Durum</span>
             </div>
             <div class="col-6">
-              <small class="text-muted">Öncelik:</small><br>
-              <span id="ticketPriority" class="badge bg-warning">Öncelik</span>
+              <small class="text-muted d-block mb-1">Öncelik:</small>
+              <span id="ticketPriority" class="priority-chip p-medium">Öncelik</span>
             </div>
           </div>
         </div>
         
         <!-- Mesaj listesi -->
-        <div id="messageList" class="p-3" style="height: 300px; overflow-y: auto;">
+        <div id="messageList" class="message-list p-4">
           <div class="text-center text-muted">
             <small>Henüz mesaj yok</small>
           </div>
         </div>
         
         <!-- Mesaj gönderme -->
-        <div class="p-3 border-top">
+        <div class="p-4 border-top">
           <div class="input-group">
             <input type="text" class="form-control" id="messageInput" placeholder="Mesaj yazın..." />
             <button class="btn btn-primary" type="button" id="sendMessage">
-              <i class="bi bi-send"></i> Gönder
+              <i class="bi bi-send me-1"></i> Gönder
             </button>
           </div>
         </div>
       </div>
     </div>
 
-    <!-- Talep listesi - tüm sayfayı kaplar -->
-    <div id="list" class="row g-3"></div>
-    <div id="empty" class="text-muted d-none">Kayıt yok.</div>
+    <!-- Talep listesi -->
+    <div id="list" class="row g-4"></div>
+    <div id="empty" class="text-center text-muted py-5 d-none">
+      <i class="bi bi-inbox display-4 text-muted mb-3"></i>
+      <div>Henüz talep bulunmuyor.</div>
+    </div>
   </main>
 
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
@@ -461,23 +265,51 @@
         `<button class="btn btn-sm btn-primary btn-assign-to-me" data-id="${t.id}" onclick="event.stopPropagation(); assignToMe(${t.id})">Bana Ata</button>` : '';
       
       return `
-      <div class="card ticket-card" style="cursor: pointer;" onclick="selectTicket(${t.id})">
-        <div class="card-body">
-          <div class="d-flex justify-content-between align-items-start">
+      <div class="col-12 col-lg-6 col-xl-4">
+        <div class="ticket-card" style="cursor: pointer;" onclick="selectTicket(${t.id})">
+          <div class="card-body p-4">
+            <div class="d-flex justify-content-between align-items-start mb-3">
             <div class="flex-grow-1">
-              <strong>${escapeHtml(t.subject||'(Konu yok)')}</strong>
-              <div class="small text-muted">#${t.id} • ${new Date(t.created_at).toLocaleString('tr-TR')} • Öncelik: ${getPriorityText(t.priority)}</div>
-              <div class="small mt-2">${escapeHtml((t.description||'').slice(0,180))}</div>
-            </div>
-            <div class="text-end">
-              <div class="mb-2">
-                <span class="badge ${badgeClass(t.status)}">${getStatusText(t.status)}</span>
+                <h6 class="subject mb-2">${escapeHtml(t.subject||'(Konu yok)')}</h6>
+                <div class="small text-muted mb-2">#${t.id} • ${new Date(t.created_at).toLocaleString('tr-TR')}</div>
+                <div class="excerpt small">${escapeHtml((t.description||'').slice(0,120))}</div>
               </div>
-              ${assignToMeBtn}
+              <div class="text-end ms-3">
+                <div class="mb-2">
+                  <span class="status-pill ${getStatusClass(t.status)}">${getStatusText(t.status)}</span>
+            </div>
+              <div class="mb-2">
+                  <span class="priority-chip ${getPriorityClass(t.priority)}">${getPriorityText(t.priority)}</span>
+                </div>
+                ${assignToMeBtn}
+              </div>
             </div>
           </div>
         </div>
       </div>`;
+    }
+
+    // Status sınıfları
+    function getStatusClass(s) {
+      switch (s) {
+        case 'NEW': return 's-new';
+        case 'OPEN': return 's-assigned';
+        case 'ASSIGNED': return 's-assigned';
+        case 'RESOLVED': return 's-resolved';
+        case 'CANCELLED': return 's-cancelled';
+        case 'CLOSED': return 's-closed';
+        default: return 's-new';
+      }
+    }
+
+    // Priority sınıfları
+    function getPriorityClass(p) {
+      switch (p) {
+        case 'LOW': return 'p-low';
+        case 'MEDIUM': return 'p-medium';
+        case 'HIGH': return 'p-high';
+        default: return 'p-medium';
+      }
     }
 
     function escapeHtml(s){return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
@@ -566,6 +398,10 @@
       $('#ticketStatus').textContent = selectedTicket.status;
       $('#ticketPriority').textContent = selectedTicket.priority;
       
+      // Status ve priority sınıflarını güncelle
+      $('#ticketStatus').className = `status-pill ${getStatusClass(selectedTicket.status)}`;
+      $('#ticketPriority').className = `priority-chip ${getPriorityClass(selectedTicket.priority)}`;
+      
       // Mesajları göster
       renderMessages();
     }
@@ -581,48 +417,24 @@
       
       messageList.innerHTML = messages.map(msg => {
         const isOwnMessage = msg.sender_id === me.id;
-        const messageColor = getMessageColor(msg.sender_id);
-        const messageClass = isOwnMessage ? `bg-${messageColor} text-white` : `bg-${messageColor} text-white`;
-        const alignClass = isOwnMessage ? 'justify-content-end' : 'justify-content-start';
+        const messageClass = isOwnMessage ? 'bubble-me' : 'bubble-other';
         const statusText = isOwnMessage ? 'Gönderildi' : 'Gelen';
         
         return `
-          <div class="d-flex ${alignClass} mb-3">
-            <div class="message-bubble ${messageClass} p-3 rounded" style="max-width: 70%;">
-              <div class="message-header mb-2">
+          <div class="d-flex ${isOwnMessage ? 'justify-content-end' : 'justify-content-start'} mb-3">
+            <div class="bubble ${messageClass}">
+              <div class="d-flex align-items-center gap-2 mb-2">
                 <small class="fw-bold">${escapeHtml(msg.sender_email || msg.sender_name || 'Bilinmeyen')}</small>
-                <span class="badge ${isOwnMessage ? 'bg-light text-dark' : 'bg-secondary'} ms-2">${statusText}</span>
+                <span class="badge ${isOwnMessage ? 'bg-light text-dark' : 'bg-secondary'}">${statusText}</span>
               </div>
-              <div class="message-content mb-2">${escapeHtml(msg.content)}</div>
-              <div class="message-time">
-                <small class="${isOwnMessage ? 'text-white-50' : 'text-white-50'}">
+              <div class="mb-2">${escapeHtml(msg.content)}</div>
+              <small class="opacity-75">
                   ${new Date(msg.created_at).toLocaleString('tr-TR')}
                 </small>
-              </div>
             </div>
           </div>
         `;
       }).join('');
-    }
-
-    // Kullanıcı ID'sine göre renk seçimi
-    function getMessageColor(userId) {
-      const colors = [
-        'primary',    // Mavi
-        'success',    // Yeşil
-        'info',       // Açık mavi
-        'warning',    // Sarı
-        'danger',     // Kırmızı
-        'secondary',  // Gri
-        'dark',       // Koyu gri
-        'purple',     // Mor (custom)
-        'teal',       // Teal (custom)
-        'orange'      // Turuncu (custom)
-      ];
-      
-      // Kullanıcı ID'sine göre renk seç (tutarlı olması için)
-      const colorIndex = userId % colors.length;
-      return colors[colorIndex];
     }
 
     // Mesaj gönderme
@@ -745,19 +557,6 @@
       }
     }
 
-    // Durum badge'leri için renk sınıfları
-    function badgeClass(s) {
-      switch (s) {
-        case 'NEW': return 'bg-primary';
-        case 'OPEN': return 'bg-warning';
-        case 'ASSIGNED': return 'bg-info';
-        case 'RESOLVED': return 'bg-success';
-        case 'CANCELLED': return 'bg-danger';
-        case 'CLOSED': return 'bg-secondary';
-        default: return 'bg-dark';
-      }
-    }
-
     // Durum metinlerini Türkçe'ye çevir
     function getStatusText(status) {
       switch (status) {
@@ -808,7 +607,7 @@
         if (res.ok) {
           subcategories = await res.json();
           $('#subcategorySelect').innerHTML = '<option value="">Tüm Alt Kategoriler</option>' + 
-            subcategories.map(s => `<option value="${s.id}">${escapeHtml(s.name)}</option>`).join('');
+            categories.map(s => `<option value="${s.id}">${escapeHtml(s.name)}</option>`).join('');
         }
         
         // Alt kategori değiştiğinde alt-alt kategorileri temizle

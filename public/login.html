@@ -2,321 +2,307 @@
 <html lang="tr">
 <head>
   <meta charset="utf-8" />
-  <title>HelpNest · Giriş</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <link href="https://cdn.jsdelivr.net/npm/bootswatch@5.3.2/dist/lux/bootstrap.min.css" rel="stylesheet"/>
+  <title>HelpNest · Giriş / Kayıt</title>
+  <!-- TailwindCSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            base: '#0B1020',     // background
+            glass: '#0f172a',    // card tint (slate-900 like)
+            brand: '#7A3DFC',    // violet
+            brand2: '#E429E8',   // magenta
+            neon: '#00E5FF',     // cyan accent
+            ink: '#E6EAF2'       // light text
+          },
+          boxShadow: {
+            glass: '0 10px 40px rgba(0,0,0,.35)',
+            glow: '0 0 0 2px rgba(122,61,252,.25), 0 15px 40px rgba(122,61,252,.35)'
+          },
+          backgroundImage: {
+            "hero-gradient": "conic-gradient(from 0deg at 50% 50%, #7A3DFC, #E429E8, #00E5FF, #7A3DFC)",
+          },
+          keyframes: {
+            spinSlow: { '0%': { transform: 'rotate(0deg)' }, '100%': { transform: 'rotate(360deg)' } },
+            floaty: { '0%,100%': { transform: 'translateY(0)' }, '50%': { transform: 'translateY(-10px)' } },
+            rise: { '0%': { opacity: 0, transform: 'translateY(12px) scale(.98)' }, '100%': { opacity: 1, transform: 'translateY(0) scale(1)' } },
+            shine: { '0%': { transform: 'translateX(-120%)' }, '100%': { transform: 'translateX(220%)' } },
+          },
+          animation: {
+            spinSlow: 'spinSlow 18s linear infinite',
+            floaty: 'floaty 6s ease-in-out infinite',
+            rise: 'rise .6s ease forwards',
+          }
+        }
+      }
+    }
+  </script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
   <style>
-    :root {
-      --space-cadet: #2B2D42;
-      --cool-gray: #8D99AE;
-      --anti-flash-white: #EDF2F4;
-    }
-    
-    body {
-      background: linear-gradient(135deg, var(--space-cadet) 0%, var(--cool-gray) 100%);
-      min-height: 100vh;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-    }
-    
-    .auth-container {
-      background: var(--anti-flash-white);
-      border-radius: 15px;
-      box-shadow: 0 15px 35px rgba(43, 45, 66, 0.2);
-      overflow: hidden;
-      width: 100%;
-      max-width: 500px;
-      border: 2px solid var(--cool-gray);
-    }
-    
-    .auth-tabs {
-      display: flex;
-      border-bottom: 2px solid var(--cool-gray);
-    }
-    
-    .auth-tab {
-      flex: 1;
-      padding: 15px;
-      text-align: center;
-      cursor: pointer;
-      transition: all 0.3s ease;
-      border: none;
-      background: none;
-      font-weight: 500;
-      color: var(--space-cadet);
-    }
-    
-    .auth-tab.active {
-      background: var(--cool-gray);
-      color: var(--anti-flash-white);
-      border-bottom: 3px solid var(--space-cadet);
-    }
-    
-    .auth-tab:hover:not(.active) {
-      background: var(--cool-gray);
-      color: var(--anti-flash-white);
-    }
-    
-    .auth-content {
-      padding: 30px;
-    }
-    
-    .auth-form {
-      display: none;
-    }
-    
-    .auth-form.active {
-      display: block;
-    }
-    
-    .form-control {
-      border-radius: 10px;
-      border: 2px solid var(--cool-gray);
-      padding: 12px 15px;
-      transition: all 0.3s ease;
-      background-color: white;
-    }
-    
-    .form-control:focus {
-      border-color: var(--space-cadet);
-      box-shadow: 0 0 0 0.2rem rgba(43, 45, 66, 0.25);
-    }
-    
-    .btn-primary {
-      background-color: var(--space-cadet) !important;
-      border-color: var(--space-cadet) !important;
-      color: var(--anti-flash-white) !important;
-      border-radius: 10px;
-      padding: 12px 30px;
-      font-weight: 600;
-      transition: all 0.3s ease;
-    }
-    
-    .btn-primary:hover {
-      background-color: var(--cool-gray) !important;
-      border-color: var(--cool-gray) !important;
-      transform: translateY(-2px);
-      box-shadow: 0 5px 15px rgba(43, 45, 66, 0.4);
-    }
-    
-    .alert {
-      border-radius: 10px;
-      border: none;
-    }
-    
-    .form-label {
-      color: var(--space-cadet) !important;
-      font-weight: 500;
-    }
-    
-    .text-muted {
-      color: var(--cool-gray) !important;
-    }
+    html, body { height: 100%; }
+    body { font-family: 'Inter', ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial; }
+    .glass { backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px); }
+    .no-tap-highlight { -webkit-tap-highlight-color: transparent; }
+    /* custom utilities for button shine */
+    .btn-shine { position: relative; overflow: hidden; }
+    .btn-shine::after { content: ""; position: absolute; inset: -150% auto -150% -150%; width: 120%; transform: rotate(20deg); background: linear-gradient(90deg, transparent 0%, rgba(255,255,255,.35) 50%, transparent 100%); animation: none; }
+    .btn-shine:hover::after { animation: shine 1.1s ease; }
+    /* password strength */
+    .strength-0 { width: 20%; background:#ef4444 }
+    .strength-1 { width: 40%; background:#f59e0b }
+    .strength-2 { width: 60%; background:#10b981 }
+    .strength-3 { width: 80%; background:#22c55e }
+    .strength-4 { width: 100%; background:#16a34a }
   </style>
 </head>
-<body>
-  <div class="auth-container">
-    <!-- Tab Navigation -->
-    <div class="auth-tabs">
-      <button class="auth-tab active" onclick="showTab('login')">Giriş Yap</button>
-      <button class="auth-tab" onclick="showTab('register')">Kayıt Ol</button>
-    </div>
-    
-    <!-- Login Form -->
-    <div class="auth-content">
-      <div id="loginForm" class="auth-form active">
-        <h2 class="text-center mb-4">Giriş Yap</h2>
-        <form id="loginFormElement">
-          <div class="mb-3">
-            <label for="loginEmail" class="form-label">E-posta</label>
-            <input type="email" class="form-control" id="loginEmail" required>
-          </div>
-          <div class="mb-3">
-            <label for="loginPassword" class="form-label">Şifre</label>
-            <input type="password" class="form-control" id="loginPassword" required>
-          </div>
-          <div class="d-grid">
-            <button type="submit" class="btn btn-primary">Giriş Yap</button>
-          </div>
-        </form>
-        <div id="loginAlert" class="alert mt-3 d-none"></div>
-      </div>
-      
-      <!-- Register Form -->
-      <div id="registerForm" class="auth-form">
-        <h2 class="text-center mb-4">Kayıt Ol</h2>
-        <form id="registerFormElement">
-          <div class="mb-3">
-            <label for="registerFullName" class="form-label">Ad Soyad</label>
-            <input type="text" class="form-control" id="registerFullName" required>
-          </div>
-          <div class="mb-3">
-            <label for="registerEmail" class="form-label">E-posta</label>
-            <input type="email" class="form-control" id="registerEmail" required>
-          </div>
-          <div class="mb-3">
-            <label for="registerPassword" class="form-label">Şifre</label>
-            <input type="password" class="form-control" id="registerPassword" required minlength="6">
-          </div>
-          <div class="mb-3">
-            <label for="registerPasswordConfirm" class="form-label">Şifre Tekrar</label>
-            <input type="password" class="form-control" id="registerPasswordConfirm" required minlength="6">
-          </div>
-          <div class="d-grid">
-            <button type="submit" class="btn btn-primary">Kayıt Ol</button>
-          </div>
-        </form>
-        <div id="registerAlert" class="alert mt-3 d-none"></div>
-      </div>
+<body class="relative min-h-full bg-base text-ink">
+  <!-- Animated gradient halo -->
+  <div class="pointer-events-none absolute -inset-24 -z-10">
+    <div class="absolute inset-0 blur-3xl opacity-40">
+      <div class="absolute left-1/2 top-1/2 h-[120vmax] w-[120vmax] -translate-x-1/2 -translate-y-1/2 rounded-full bg-hero-gradient animate-spinSlow"></div>
     </div>
   </div>
 
-  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+  <!-- Floating blobs -->
+  <div class="pointer-events-none absolute inset-0 -z-10">
+    <div class="absolute left-8 top-16 h-24 w-24 rounded-full bg-brand/30 blur-2xl animate-floaty"></div>
+    <div class="absolute right-12 bottom-24 h-28 w-28 rounded-full bg-neon/30 blur-2xl animate-floaty" style="animation-delay:1.2s"></div>
+    <div class="absolute left-1/3 bottom-10 h-20 w-20 rounded-full bg-brand2/30 blur-2xl animate-floaty" style="animation-delay:2s"></div>
+  </div>
+
+  <main class="relative z-10 flex min-h-screen items-center justify-center p-6">
+    <div class="grid w-full max-w-6xl grid-cols-1 overflow-hidden rounded-3xl border border-white/10 bg-white/5 shadow-glass glass backdrop-saturate-150 lg:grid-cols-2">
+      <!-- Left / Brand -->
+      <section class="relative hidden min-h-[680px] flex-col justify-between bg-gradient-to-br from-[#0f1228]/80 to-[#060813]/60 p-10 lg:flex">
+        <a href="#" class="inline-flex items-center gap-3 rounded-2xl bg-white/5 px-4 py-2 text-sm font-medium text-ink/90 ring-1 ring-white/10 hover:bg-white/10 transition">
+          <span class="inline-flex h-9 w-9 items-center justify-center rounded-xl bg-ink/90 text-base font-bold text-base/90">H</span>
+          <span class="tracking-wide">HelpNest</span>
+        </a>
+
+        <div class="mt-10 animate-rise" style="animation-delay:.05s">
+          <h1 class="text-4xl font-semibold leading-tight">Tek panelle <span class="bg-gradient-to-r from-brand via-brand2 to-neon bg-clip-text text-transparent">yardım masanızı</span> yönetin</h1>
+          <p class="mt-4 max-w-md text-ink/80">Giriş yapın veya kayıt olun. Biletleri, kullanıcıları ve ekip akışlarını modern, hızlı ve güvenli bir arayüzde yönetin.</p>
+          <ul class="mt-8 space-y-3 text-ink/90">
+            <li class="flex items-center gap-3"><svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-neon" viewBox="0 0 24 24" fill="currentColor"><path d="M9 12.75 7.5 11.25 6.44 12.31 9 14.87 17.56 6.31 16.5 5.25 9 12.75z"/></svg> SSO dostu güvenli giriş</li>
+            <li class="flex items-center gap-3"><svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-brand" viewBox="0 0 24 24" fill="currentColor"><path d="M9 12.75 7.5 11.25 6.44 12.31 9 14.87 17.56 6.31 16.5 5.25 9 12.75z"/></svg> Rol bazlı yönlendirme</li>
+            <li class="flex items-center gap-3"><svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-brand2" viewBox="0 0 24 24" fill="currentColor"><path d="M9 12.75 7.5 11.25 6.44 12.31 9 14.87 17.56 6.31 16.5 5.25 9 12.75z"/></svg> Cam efektli şık arayüz</li>
+          </ul>
+        </div>
+        <p class="mt-auto text-xs text-ink/60">© <span id="y"></span> HelpNest</p>
+      </section>
+
+      <!-- Right / Auth card -->
+      <section class="relative bg-white/70 p-8 backdrop-blur-sm dark:bg-white/60">
+        <!-- Tabs -->
+        <div class="mx-auto w-full max-w-md">
+          <div class="mb-6 grid grid-cols-2 rounded-2xl bg-white/60 p-1 text-sm font-medium shadow-inner">
+            <button id="tab-login" class="rounded-xl px-4 py-2 transition data-[active=true]:bg-white data-[active=true]:shadow data-[active=true]:text-base data-[active=true]:shadow-glow" data-active="true" aria-selected="true">
+              <span class="relative inline-block">Giriş Yap <span class="absolute -bottom-1 left-0 h-0.5 w-0 bg-gradient-to-r from-brand via-neon to-brand2 transition-[width] data-[active=true]:w-full" data-underline></span></span>
+            </button>
+            <button id="tab-register" class="rounded-xl px-4 py-2 transition data-[active=true]:bg-white data-[active=true]:shadow data-[active=true]:text-base data-[active=true]:shadow-glow" aria-selected="false">
+              <span class="relative inline-block">Kayıt Ol <span class="absolute -bottom-1 left-0 h-0.5 w-0 bg-gradient-to-r from-brand2 via-brand to-neon transition-[width]" data-underline></span></span>
+            </button>
+          </div>
+
+          <!-- Alerts -->
+          <div id="alert" class="mb-4 hidden rounded-xl border p-3 text-sm"></div>
+
+          <!-- Login Form -->
+          <form id="form-login" class="space-y-4 animate-rise" style="animation-delay:.05s" autocomplete="on">
+            <div>
+              <label for="loginEmail" class="mb-1 block text-sm font-medium text-base">E-posta</label>
+              <input id="loginEmail" type="email" required class="w-full rounded-xl border border-white/60 bg-white/90 px-4 py-3 outline-none ring-brand/0 transition placeholder:text-slate-400 focus:border-brand focus:ring-4 focus:ring-brand/20" placeholder="ornek@eposta.com" />
+            </div>
+            <div>
+              <div class="mb-1 flex items-center justify-between">
+                <label for="loginPassword" class="block text-sm font-medium text-base">Şifre</label>
+                <a href="#" class="text-xs bg-gradient-to-r from-brand via-neon to-brand2 bg-clip-text text-transparent hover:underline">Şifremi unuttum</a>
+              </div>
+              <div class="relative">
+                <input id="loginPassword" type="password" required class="w-full rounded-xl border border-white/60 bg-white/90 px-4 py-3 pr-12 outline-none ring-brand/0 transition placeholder:text-slate-400 focus:border-brand focus:ring-4 focus:ring-brand/20" placeholder="••••••••" />
+                <button type="button" class="absolute inset-y-0 right-3 my-auto inline-flex h-8 w-8 items-center justify-center rounded-lg text-slate-500 hover:bg-slate-200/60" aria-label="Şifreyi göster" data-toggle-password="loginPassword">
+                  <svg class="h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M2.036 12.322a1.012 1.012 0 010-.644C3.423 7.51 7.36 5 12 5c4.64 0 8.577 2.51 9.964 6.678.07.214.07.43 0 .644C20.577 16.49 16.64 19 12 19c-4.64 0-8.577-2.51-9.964-6.678z"/><circle cx="12" cy="12" r="3"/></svg>
+                </button>
+              </div>
+            </div>
+            <div class="flex items-center justify-between">
+              <label class="inline-flex items-center gap-2 text-sm text-base/90">
+                <input type="checkbox" class="h-4 w-4 rounded border-slate-300 text-brand focus:ring-brand" />
+                Beni hatırla
+              </label>
+            </div>
+            <button type="submit" class="btn-shine no-tap-highlight group inline-flex w-full items-center justify-center gap-2 rounded-xl bg-brand px-5 py-3 font-semibold text-white shadow-glow transition hover:-translate-y-0.5 hover:bg-brand/90 focus:outline-none focus:ring-4 focus:ring-brand/30">
+              <span>Giriş Yap</span>
+              <svg class="transition group-hover:translate-x-0.5" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M10 17l5-5-5-5v10z"/></svg>
+            </button>
+            <div class="text-center text-xs text-slate-600">veya</div>
+            <div class="grid grid-cols-2 gap-3">
+              <button type="button" class="rounded-xl border border-white/60 bg-white/90 px-4 py-2 text-sm font-medium text-slate-800 shadow hover:shadow-md transition">Google</button>
+              <button type="button" class="rounded-xl border border-white/60 bg-white/90 px-4 py-2 text-sm font-medium text-slate-800 shadow hover:shadow-md transition">Microsoft</button>
+            </div>
+          </form>
+
+          <!-- Register Form -->
+          <form id="form-register" class="hidden space-y-4 animate-rise" style="animation-delay:.1s" autocomplete="off">
+            <div>
+              <label for="registerFullName" class="mb-1 block text-sm font-medium text-base">Ad Soyad</label>
+              <input id="registerFullName" type="text" required class="w-full rounded-xl border border-white/60 bg-white/90 px-4 py-3 outline-none ring-brand/0 transition placeholder:text-slate-400 focus:border-brand2 focus:ring-4 focus:ring-brand2/20" placeholder="Adınız Soyadınız" />
+            </div>
+            <div>
+              <label for="registerEmail" class="mb-1 block text-sm font-medium text-base">E-posta</label>
+              <input id="registerEmail" type="email" required class="w-full rounded-xl border border-white/60 bg-white/90 px-4 py-3 outline-none ring-brand/0 transition placeholder:text-slate-400 focus:border-brand2 focus:ring-4 focus:ring-brand2/20" placeholder="ornek@eposta.com" />
+            </div>
+            <div>
+              <label for="registerPassword" class="mb-1 block text-sm font-medium text-base">Şifre</label>
+              <div class="relative">
+                <input id="registerPassword" type="password" minlength="6" required class="w-full rounded-xl border border-white/60 bg-white/90 px-4 py-3 pr-12 outline-none transition placeholder:text-slate-400 focus:border-neon focus:ring-4 focus:ring-neon/20" placeholder="En az 6 karakter" />
+                <button type="button" class="absolute inset-y-0 right-3 my-auto inline-flex h-8 w-8 items-center justify-center rounded-lg text-slate-500 hover:bg-slate-200/60" aria-label="Şifreyi göster" data-toggle-password="registerPassword">
+                  <svg class="h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M2.036 12.322a1.012 1.012 0 010-.644C3.423 7.51 7.36 5 12 5c4.64 0 8.577 2.51 9.964 6.678.07.214.07.43 0 .644C20.577 16.49 16.64 19 12 19c-4.64 0-8.577-2.51-9.964-6.678z"/><circle cx="12" cy="12" r="3"/></svg>
+                </button>
+              </div>
+              <div class="mt-2 h-1.5 w-full rounded-full bg-slate-200">
+                <div id="strengthBar" class="h-1.5 rounded-full transition-[width,background]"></div>
+              </div>
+            </div>
+            <div>
+              <label for="registerPasswordConfirm" class="mb-1 block text-sm font-medium text-base">Şifre Tekrar</label>
+              <input id="registerPasswordConfirm" type="password" minlength="6" required class="w-full rounded-xl border border-white/60 bg-white/90 px-4 py-3 outline-none transition placeholder:text-slate-400 focus:border-neon focus:ring-4 focus:ring-neon/20" placeholder="Şifrenizi tekrar yazın" />
+            </div>
+            <button type="submit" class="btn-shine inline-flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-brand via-neon to-brand2 px-5 py-3 font-semibold text-white shadow-glow transition hover:-translate-y-0.5 focus:outline-none focus:ring-4 focus:ring-neon/30">
+              Kayıt Ol
+            </button>
+            <p class="text-center text-xs text-slate-600">Kayıt olarak <a href="#" class="underline">Kullanım Şartları</a> ve <a href="#" class="underline">Gizlilik</a>'i kabul edersiniz.</p>
+          </form>
+        </div>
+      </section>
+    </div>
+  </main>
+
   <script>
-    // Tab switching
-    function showTab(tabName) {
-      // Hide all forms
-      document.querySelectorAll('.auth-form').forEach(form => {
-        form.classList.remove('active');
+    // Year
+    document.getElementById('y').textContent = new Date().getFullYear();
+
+    // Tabs
+    const $loginTab = document.getElementById('tab-login');
+    const $registerTab = document.getElementById('tab-register');
+    const $loginForm = document.getElementById('form-login');
+    const $registerForm = document.getElementById('form-register');
+    const $alert = document.getElementById('alert');
+
+    function switchTab(target) {
+      const isLogin = target === 'login';
+      $loginTab.dataset.active = isLogin;
+      $registerTab.dataset.active = !isLogin;
+      $loginForm.classList.toggle('hidden', !isLogin);
+      $registerForm.classList.toggle('hidden', isLogin);
+      document.querySelectorAll('[data-underline]').forEach(u => u.style.width = '0');
+      const activeUnderline = (isLogin ? $loginTab : $registerTab).querySelector('[data-underline]');
+      if (activeUnderline) activeUnderline.style.width = '100%';
+      $alert.classList.add('hidden');
+      $alert.textContent = '';
+    }
+
+    $loginTab.addEventListener('click', () => switchTab('login'));
+    $registerTab.addEventListener('click', () => switchTab('register'));
+
+    // Password visibility toggles
+    document.querySelectorAll('[data-toggle-password]').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const id = btn.getAttribute('data-toggle-password');
+        const input = document.getElementById(id);
+        const type = input.getAttribute('type') === 'password' ? 'text' : 'password';
+        input.setAttribute('type', type);
       });
-      
-      // Remove active class from all tabs
-      document.querySelectorAll('.auth-tab').forEach(tab => {
-        tab.classList.remove('active');
-      });
-      
-      // Show selected form and activate tab
-      document.getElementById(tabName + 'Form').classList.add('active');
-      event.target.classList.add('active');
-      
-      // Clear alerts
-      document.querySelectorAll('.alert').forEach(alert => {
-        alert.classList.add('d-none');
+    });
+
+    // Password strength
+    const strengthBar = document.getElementById('strengthBar');
+    const regPwd = document.getElementById('registerPassword');
+    if (regPwd) {
+      regPwd.addEventListener('input', () => {
+        const v = regPwd.value;
+        let score = 0;
+        if (v.length > 7) score++;
+        if (/[A-Z]/.test(v)) score++;
+        if (/[0-9]/.test(v)) score++;
+        if (/[^A-Za-z0-9]/.test(v)) score++;
+        strengthBar.className = 'h-1.5 rounded-full transition-[width,background] strength-' + score;
       });
     }
 
-    // Login form submission
-    document.getElementById('loginFormElement').addEventListener('submit', async (e) => {
+    // Helper: show alert
+    function showAlert(type, message) {
+      const styles = {
+        success: 'border-green-200 bg-green-50 text-green-700',
+        error: 'border-red-200 bg-red-50 text-red-700',
+        info: 'border-blue-200 bg-blue-50 text-blue-700'
+      };
+      $alert.className = `mb-4 rounded-xl border p-3 text-sm ${styles[type] || styles.info}`;
+      $alert.textContent = message;
+      $alert.classList.remove('hidden');
+    }
+
+    // Submit: Login
+    $loginForm.addEventListener('submit', async (e) => {
       e.preventDefault();
-      
       const email = document.getElementById('loginEmail').value.trim();
       const password = document.getElementById('loginPassword').value;
-      const alertDiv = document.getElementById('loginAlert');
-      
       try {
-        const response = await fetch('/auth/login', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json'
-          },
+        const res = await fetch('/auth/login', {
+          method: 'POST', headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ email, password })
         });
-        
-        const data = await response.json();
-        
-        if (response.ok) {
-          // Başarılı giriş
-          alertDiv.className = 'alert alert-success mt-3';
-          alertDiv.textContent = 'Giriş başarılı! Yönlendiriliyorsunuz...';
-          alertDiv.classList.remove('d-none');
-          
-          // Kullanıcı bilgisini localStorage'a kaydet
+        const data = await res.json();
+        if (res.ok) {
           localStorage.setItem('helpdesk_user', JSON.stringify(data.user));
-          
-          // Rol bazlı yönlendirme
+          showAlert('success', 'Giriş başarılı! Yönlendiriliyorsunuz...');
           setTimeout(() => {
-            if (data.user.role === 'end_user') {
-              window.location.href = '/user.html';
-            } else if (data.user.role === 'dispatcher') {
-              window.location.href = '/dispatcher.html';
-            } else {
-              window.location.href = '/dashboard.html';
-            }
-          }, 1500);
-          
+            if (data.user.role === 'end_user') window.location.href = '/user.html';
+            else if (data.user.role === 'dispatcher') window.location.href = '/dispatcher.html';
+            else window.location.href = '/dashboard.html';
+          }, 900);
         } else {
-          // Giriş hatası
-          alertDiv.className = 'alert alert-danger mt-3';
-          alertDiv.textContent = data.error || 'Giriş başarısız!';
-          alertDiv.classList.remove('d-none');
+          showAlert('error', data.error || 'Giriş başarısız!');
         }
-        
-      } catch (error) {
-        alertDiv.className = 'alert alert-danger mt-3';
-        alertDiv.textContent = 'Bir hata oluştu: ' + error.message;
-        alertDiv.classList.remove('d-none');
+      } catch (err) {
+        showAlert('error', 'Bir hata oluştu: ' + err.message);
       }
     });
 
-    // Register form submission
-    document.getElementById('registerFormElement').addEventListener('submit', async (e) => {
+    // Submit: Register
+    $registerForm.addEventListener('submit', async (e) => {
       e.preventDefault();
-      
-      const fullName = document.getElementById('registerFullName').value.trim();
+      const full_name = document.getElementById('registerFullName').value.trim();
       const email = document.getElementById('registerEmail').value.trim();
       const password = document.getElementById('registerPassword').value;
-      const passwordConfirm = document.getElementById('registerPasswordConfirm').value;
-      const alertDiv = document.getElementById('registerAlert');
-      
-      // Şifre kontrolü
-      if (password !== passwordConfirm) {
-        alertDiv.className = 'alert alert-danger mt-3';
-        alertDiv.textContent = 'Şifreler eşleşmiyor!';
-        alertDiv.classList.remove('d-none');
-        return;
-      }
-      
-      // Şifre uzunluk kontrolü
-      if (password.length < 6) {
-        alertDiv.className = 'alert alert-danger mt-3';
-        alertDiv.textContent = 'Şifre en az 6 karakter olmalıdır!';
-        alertDiv.classList.remove('d-none');
-        return;
-      }
-      
+      const confirm = document.getElementById('registerPasswordConfirm').value;
+      if (password !== confirm) return showAlert('error', 'Şifreler eşleşmiyor!');
+      if (password.length < 6) return showAlert('error', 'Şifre en az 6 karakter olmalı!');
       try {
-        const response = await fetch('/auth/register', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify({ 
-            full_name: fullName, 
-            email, 
-            password 
-          })
+        const res = await fetch('/auth/register', {
+          method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ full_name, email, password })
         });
-        
-        const data = await response.json();
-        
-        if (response.ok) {
-          // Başarılı kayıt
-          alertDiv.className = 'alert alert-success mt-3';
-          alertDiv.textContent = 'Kayıt başarılı! Giriş yapabilirsiniz.';
-          alertDiv.classList.remove('d-none');
-          
-          // Formu temizle
-          document.getElementById('registerFormElement').reset();
-          
-          // 3 saniye sonra giriş tabına geç
-          setTimeout(() => {
-            showTab('login');
-          }, 3000);
-          
+        const data = await res.json();
+        if (res.ok) {
+          showAlert('success', 'Kayıt başarılı! Giriş yapabilirsiniz.');
+          (e.target).reset();
+          setTimeout(() => switchTab('login'), 1200);
         } else {
-          // Kayıt hatası
-          alertDiv.className = 'alert alert-danger mt-3';
-          alertDiv.textContent = data.error || 'Kayıt başarısız!';
-          alertDiv.classList.remove('d-none');
+          showAlert('error', data.error || 'Kayıt başarısız!');
         }
-        
-      } catch (error) {
-        alertDiv.className = 'alert alert-danger mt-3';
-        alertDiv.textContent = 'Bir hata oluştu: ' + error.message;
-        alertDiv.classList.remove('d-none');
+      } catch (err) {
+        showAlert('error', 'Bir hata oluştu: ' + err.message);
       }
     });
+
+    // init underline
+    switchTab('login');
   </script>
 </body>
 </html>
