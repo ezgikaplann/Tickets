@@ -212,10 +212,47 @@ router.post('/:id/status', auth(['agent', 'admin', 'end_user']), async (req, res
  * Aktif kategoriler
  */
 router.get('/categories', auth(), async (_req, res) => {
-  const [rows] = await pool.execute(
-    'SELECT id, name FROM categories WHERE is_active = 1 ORDER BY name'
-  );
-  res.json(rows);
+  try {
+    // Önce tablo yapısını kontrol et
+    const [tables] = await pool.execute('SHOW TABLES LIKE "categories"');
+    
+    if (tables.length === 0) {
+      console.log('categories tablosu yok, oluşturuluyor...');
+      
+      // Tabloyu oluştur
+      await pool.execute(`
+        CREATE TABLE categories (
+          id INT AUTO_INCREMENT PRIMARY KEY,
+          name VARCHAR(255) NOT NULL,
+          is_active BOOLEAN DEFAULT 1,
+          created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )
+      `);
+      
+      // Örnek veriler ekle
+      await pool.execute(`
+        INSERT INTO categories (name) VALUES 
+        ('Bilgi Teknolojileri'),
+        ('İnsan Kaynakları'),
+        ('Muhasebe'),
+        ('Satış'),
+        ('Pazarlama'),
+        ('Müşteri Hizmetleri')
+      `);
+      
+      console.log('categories tablosu oluşturuldu ve örnek veriler eklendi');
+    }
+
+    const [rows] = await pool.execute(
+      'SELECT id, name FROM categories WHERE is_active = 1 ORDER BY name'
+    );
+    
+    console.log(`${rows.length} kategori bulundu:`, rows);
+    res.json(rows);
+  } catch (error) {
+    console.error('Categories error:', error);
+    res.status(500).json({ error: 'internal_server_error', message: error.message });
+  }
 });
 
 /**
@@ -224,24 +261,262 @@ router.get('/categories', auth(), async (_req, res) => {
  */
 router.get('/subcategories', auth(), async (req, res) => {
   const { category_id } = req.query;
-  if (!category_id) return res.json([]);
+  
+  console.log('=== ALT KATEGORİLER ENDPOINT ÇAĞRILDI ===');
+  console.log('Query parametreleri:', req.query);
+  console.log('category_id:', category_id);
+  console.log('category_id type:', typeof category_id);
+  
+  if (!category_id) {
+    console.log('category_id parametresi eksik, boş array döndürülüyor');
+    return res.json([]);
+  }
 
-  const [rows] = await pool.execute(
-    'SELECT id, name FROM subcategories WHERE is_active = 1 AND category_id = :id ORDER BY name',
-    { id: category_id }
-  );
-  res.json(rows);
+  try {
+    // category_id'yi number'a çevir
+    const categoryId = parseInt(category_id);
+    if (isNaN(categoryId)) {
+      console.log('category_id geçersiz sayı:', category_id);
+      return res.status(400).json({ error: 'invalid_category_id', message: 'Geçersiz kategori ID' });
+    }
+    
+    console.log('Parsed categoryId:', categoryId);
+    
+    // Önce tablo yapısını kontrol et
+    const [tables] = await pool.execute('SHOW TABLES LIKE "subcategories"');
+    console.log('subcategories tablosu mevcut mu:', tables.length > 0);
+    
+    if (tables.length === 0) {
+      console.log('subcategories tablosu yok, oluşturuluyor...');
+      
+      // Tabloyu oluştur
+      await pool.execute(`
+        CREATE TABLE subcategories (
+          id INT AUTO_INCREMENT PRIMARY KEY,
+          name VARCHAR(255) NOT NULL,
+          category_id INT NOT NULL,
+          is_active BOOLEAN DEFAULT 1,
+          created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+          FOREIGN KEY (category_id) REFERENCES categories(id) ON DELETE CASCADE
+        )
+      `);
+      
+      // Örnek veriler ekle
+      await pool.execute(`
+        INSERT INTO subcategories (name, category_id) VALUES 
+        ('Teknik Destek', 1),
+        ('Yazılım Sorunu', 1),
+        ('Donanım Sorunu', 1),
+        ('Ağ Sorunu', 1),
+        ('Uygulama Sorunu', 1),
+        ('Sistem Sorunu', 1),
+        ('Güvenlik Sorunu', 1),
+        ('Performans Sorunu', 1)
+      `);
+      
+      console.log('subcategories tablosu oluşturuldu ve örnek veriler eklendi');
+    }
+
+    // SQL sorgusunu düzelt - named placeholder yerine positional placeholder kullan
+    const [rows] = await pool.execute(
+      'SELECT id, name FROM subcategories WHERE is_active = 1 AND category_id = ? ORDER BY name',
+      [categoryId]  // Array olarak geç, named placeholder değil
+    );
+    
+    console.log(`Category ${categoryId} için ${rows.length} alt kategori bulundu:`, rows);
+    
+    // SQL sorgusunu da logla
+    const sql = 'SELECT id, name FROM subcategories WHERE is_active = 1 AND category_id = ? ORDER BY name';
+    console.log('SQL sorgusu:', sql);
+    console.log('SQL parametreleri (array):', [categoryId]);
+    
+    res.json(rows);
+  } catch (error) {
+    console.error('=== ALT KATEGORİLER HATASI ===');
+    console.error('Error:', error.message);
+    console.error('Stack:', error.stack);
+    res.status(500).json({ error: 'internal_server_error', message: error.message });
+  }
 });
 
-// 3. seviye: alt-alt kategoriler
+/**
+ * GET /tickets/subsubcategories?subcategory_id=1
+ * Bir alt kategorinin aktif alt-alt kategorileri
+ */
 router.get('/subsubcategories', auth(), async (req, res) => {
   const { subcategory_id } = req.query;
-  if (!subcategory_id) return res.json([]);
-  const [rows] = await pool.execute(
-    'SELECT id, name FROM sub_subcategories WHERE is_active=1 AND subcategory_id=:sid ORDER BY name',
-    { sid: subcategory_id }
-  );
-  res.json(rows);
+  
+  console.log('=== ALT-ALT KATEGORİLER ENDPOINT ÇAĞRILDI ===');
+  console.log('Query parametreleri:', req.query);
+  console.log('subcategory_id:', subcategory_id);
+  console.log('subcategory_id type:', typeof subcategory_id);
+  
+  if (!subcategory_id) {
+    console.log('subcategory_id parametresi eksik, boş array döndürülüyor');
+    return res.json([]);
+  }
+
+  try {
+    // subcategory_id'yi number'a çevir
+    const subcategoryId = parseInt(subcategory_id);
+    if (isNaN(subcategoryId)) {
+      console.log('subcategory_id geçersiz sayı:', subcategory_id);
+      return res.status(400).json({ error: 'invalid_subcategory_id', message: 'Geçersiz alt kategori ID' });
+    }
+    
+    console.log('Parsed subcategoryId:', subcategoryId);
+    
+    // Önce tablo yapısını kontrol et
+    const [tables] = await pool.execute('SHOW TABLES LIKE "sub_subcategories"');
+    console.log('sub_subcategories tablosu mevcut mu:', tables.length > 0);
+    
+    if (tables.length === 0) {
+      console.log('sub_subcategories tablosu yok, oluşturuluyor...');
+      
+      // Tabloyu oluştur
+      await pool.execute(`
+        CREATE TABLE sub_subcategories (
+          id INT AUTO_INCREMENT PRIMARY KEY,
+          name VARCHAR(255) NOT NULL,
+          subcategory_id INT NOT NULL,
+          is_active BOOLEAN DEFAULT 1,
+          created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+          FOREIGN KEY (subcategory_id) REFERENCES subcategories(id) ON DELETE CASCADE
+        )
+      `);
+      
+      console.log('sub_subcategories tablosu oluşturuldu');
+      
+      // Örnek veriler ekle
+      await pool.execute(`
+        INSERT INTO sub_subcategories (name, subcategory_id) VALUES 
+        -- Teknik Destek alt kategorileri
+        ('Windows Sorunu', 1),
+        ('Mac Sorunu', 1),
+        ('Linux Sorunu', 1),
+        ('Mobil Cihaz', 1),
+        
+        -- Yazılım Sorunu alt kategorileri
+        ('Web Uygulaması', 2),
+        ('Masaüstü Uygulama', 2),
+        ('Veritabanı', 2),
+        ('API Sorunu', 2),
+        
+        -- Donanım Sorunu alt kategorileri
+        ('Sunucu', 3),
+        ('Bilgisayar', 3),
+        ('Yazıcı', 3),
+        ('Tarayıcı', 3),
+        
+        -- Ağ Sorunu alt kategorileri
+        ('Router', 4),
+        ('Switch', 4),
+        ('Modem', 4),
+        ('WiFi', 4),
+        
+        -- Uygulama Sorunu alt kategorileri (ÖNEMLİ!)
+        ('Web Tarayıcı', 5),
+        ('Mobil Uygulama', 5),
+        ('Masaüstü Program', 5),
+        ('E-posta Uygulaması', 5),
+        ('Ofis Uygulamaları', 5),
+        ('Grafik Tasarım', 5),
+        ('Video Düzenleme', 5),
+        ('Oyun', 5),
+        ('Antivirüs', 5),
+        ('Yedekleme', 5),
+        
+        -- Sistem Sorunu alt kategorileri
+        ('İşletim Sistemi', 6),
+        ('Sürücü', 6),
+        ('Servis', 6),
+        ('Güncelleme', 6),
+        
+        -- Güvenlik Sorunu alt kategorileri
+        ('Virüs', 7),
+        ('Malware', 7),
+        ('Spam', 7),
+        ('Şifre', 7),
+        
+        -- Performans Sorunu alt kategorileri
+        ('Yavaşlık', 8),
+        ('Donma', 8),
+        ('Çökme', 8),
+        ('Bellek', 8)
+      `);
+      
+      console.log('sub_subcategories tablosuna örnek veriler eklendi');
+    } else {
+      console.log('sub_subcategories tablosu zaten mevcut');
+      
+      // Mevcut verileri kontrol et
+      const [existingData] = await pool.execute('SELECT * FROM sub_subcategories LIMIT 5');
+      console.log('Mevcut alt-alt kategori verileri (ilk 5):', existingData);
+      
+      // Uygulama Sorunu için alt-alt kategorileri kontrol et
+      const [appSubcategory] = await pool.execute(
+        'SELECT id FROM subcategories WHERE name = "Uygulama Sorunu" LIMIT 1'
+      );
+      console.log('Uygulama Sorunu alt kategorisi:', appSubcategory);
+      
+      if (appSubcategory.length > 0) {
+        const appSubcategoryId = appSubcategory[0].id;
+        console.log('Uygulama Sorunu alt kategori ID:', appSubcategoryId);
+        
+        // Bu alt kategori için kaç tane alt-alt kategori var?
+        const [appSubsubcategories] = await pool.execute(
+          'SELECT COUNT(*) as count FROM sub_subcategories WHERE subcategory_id = ?',
+          [appSubcategoryId]
+        );
+        console.log('Uygulama Sorunu için alt-alt kategori sayısı:', appSubsubcategories[0].count);
+        
+        if (appSubsubcategories[0].count === 0) {
+          console.log('Uygulama Sorunu için alt-alt kategoriler ekleniyor...');
+          
+          // Uygulama Sorunu için alt-alt kategorileri ekle
+          await pool.execute(`
+            INSERT INTO sub_subcategories (name, subcategory_id) VALUES 
+            ('Web Tarayıcı', ?),
+            ('Mobil Uygulama', ?),
+            ('Masaüstü Program', ?),
+            ('E-posta Uygulaması', ?),
+            ('Ofis Uygulamaları', ?),
+            ('Grafik Tasarım', ?),
+            ('Video Düzenleme', ?),
+            ('Oyun', ?),
+            ('Antivirüs', ?),
+            ('Yedekleme', ?)
+          `, [appSubcategoryId, appSubcategoryId, appSubcategoryId, appSubcategoryId, appSubcategoryId, 
+               appSubcategoryId, appSubcategoryId, appSubcategoryId, appSubcategoryId, appSubcategoryId]);
+          
+          console.log('Uygulama Sorunu için alt-alt kategoriler eklendi');
+        }
+      }
+    }
+
+    // Şimdi istenen subcategory_id için alt-alt kategorileri getir
+    console.log(`subcategoryId ${subcategoryId} için alt-alt kategoriler aranıyor...`);
+    
+    // SQL sorgusunu düzelt - named placeholder yerine positional placeholder kullan
+    const [rows] = await pool.execute(
+      'SELECT id, name FROM sub_subcategories WHERE is_active = 1 AND subcategory_id = ? ORDER BY name',
+      [subcategoryId]  // Array olarak geç, named placeholder değil
+    );
+    
+    console.log(`Subcategory ${subcategoryId} için ${rows.length} alt-alt kategori bulundu:`, rows);
+    
+    // SQL sorgusunu da logla
+    const sql = 'SELECT id, name FROM sub_subcategories WHERE is_active = 1 AND subcategory_id = ? ORDER BY name';
+    console.log('SQL sorgusu:', sql);
+    console.log('SQL parametreleri (array):', [subcategoryId]);
+    
+    res.json(rows);
+  } catch (error) {
+    console.error('=== ALT-ALT KATEGORİLER HATASI ===');
+    console.error('Error:', error.message);
+    console.error('Stack:', error.stack);
+    res.status(500).json({ error: 'internal_server_error', message: error.message });
+  }
 });
 
 /**
@@ -614,6 +889,53 @@ router.get('/test-table', auth(), async (req, res) => {
 });
 
 /**
+ * GET /tickets/test-categories
+ * Kategori sistemini test et
+ */
+router.get('/test-categories', auth(), async (req, res) => {
+  try {
+    console.log('=== KATEGORİ SİSTEMİ TEST BAŞLADI ===');
+    
+    // Tüm tabloları listele
+    const [tables] = await pool.execute('SHOW TABLES');
+    console.log('All tables:', tables);
+    
+    // Kategori tablolarını kontrol et
+    const categoryTables = ['categories', 'subcategories', 'sub_subcategories'];
+    const tableStatus = {};
+    
+    for (const tableName of categoryTables) {
+      const [tableExists] = await pool.execute(`SHOW TABLES LIKE "${tableName}"`);
+      tableStatus[tableName] = tableExists.length > 0;
+      
+      if (tableExists.length > 0) {
+        // Tablo varsa kolonları ve veri sayısını kontrol et
+        const [columns] = await pool.execute(`DESCRIBE ${tableName}`);
+        const [count] = await pool.execute(`SELECT COUNT(*) as count FROM ${tableName}`);
+        
+        tableStatus[`${tableName}_columns`] = columns;
+        tableStatus[`${tableName}_count`] = count[0].count;
+        
+        // Örnek veri
+        const [sampleData] = await pool.execute(`SELECT * FROM ${tableName} LIMIT 3`);
+        tableStatus[`${tableName}_sample`] = sampleData;
+      }
+    }
+    
+    console.log('Table status:', tableStatus);
+    
+    res.json({ 
+      message: 'Kategori sistemi test edildi',
+      tableStatus: tableStatus
+    });
+    
+  } catch (error) {
+    console.error('Category test error:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+/**
  * POST /tickets/:id/messages
  * Bir talebe mesaj ekler
  */
@@ -644,7 +966,9 @@ router.post('/:id/messages', auth(), async (req, res) => {
           ticket_id INT NOT NULL,
           sender_id INT NOT NULL,
           content TEXT NOT NULL,
-          created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+          created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+          FOREIGN KEY (ticket_id) REFERENCES tickets(id) ON DELETE CASCADE,
+          FOREIGN KEY (sender_id) REFERENCES users(id) ON DELETE CASCADE
         )
       `);
       
@@ -762,6 +1086,134 @@ router.get('/:id/check-permission', auth(['agent', 'admin', 'end_user']), async 
 
   } catch (error) {
     res.status(500).json({ error: error.message });
+  }
+});
+
+/**
+ * GET /tickets/fix-categories
+ * Kategori sistemini düzelt ve eksik verileri ekle
+ */
+router.get('/fix-categories', auth(['admin']), async (req, res) => {
+  try {
+    console.log('=== KATEGORİ SİSTEMİ DÜZELTİLİYOR ===');
+    
+    // 1. Kategorileri kontrol et ve ekle
+    const [categories] = await pool.execute('SELECT * FROM categories');
+    if (categories.length === 0) {
+      await pool.execute(`
+        INSERT INTO categories (name) VALUES 
+        ('Bilgi Teknolojileri'),
+        ('İnsan Kaynakları'),
+        ('Muhasebe'),
+        ('Satış'),
+        ('Pazarlama'),
+        ('Müşteri Hizmetleri')
+      `);
+      console.log('Ana kategoriler eklendi');
+    }
+    
+    // 2. Alt kategorileri kontrol et ve ekle
+    const [subcategories] = await pool.execute('SELECT * FROM subcategories');
+    if (subcategories.length === 0) {
+      await pool.execute(`
+        INSERT INTO subcategories (name, category_id) VALUES 
+        ('Teknik Destek', 1),
+        ('Yazılım Sorunu', 1),
+        ('Donanım Sorunu', 1),
+        ('Ağ Sorunu', 1),
+        ('Uygulama Sorunu', 1),
+        ('Sistem Sorunu', 1),
+        ('Güvenlik Sorunu', 1),
+        ('Performans Sorunu', 1)
+      `);
+      console.log('Alt kategoriler eklendi');
+    }
+    
+    // 3. Alt-alt kategorileri kontrol et ve ekle
+    const [subsubcategories] = await pool.execute('SELECT * FROM sub_subcategories');
+    if (subsubcategories.length === 0) {
+      await pool.execute(`
+        INSERT INTO sub_subcategories (name, subcategory_id) VALUES 
+        -- Teknik Destek alt kategorileri
+        ('Windows Sorunu', 1),
+        ('Mac Sorunu', 1),
+        ('Linux Sorunu', 1),
+        ('Mobil Cihaz', 1),
+        
+        -- Yazılım Sorunu alt kategorileri
+        ('Web Uygulaması', 2),
+        ('Masaüstü Uygulama', 2),
+        ('Veritabanı', 2),
+        ('API Sorunu', 2),
+        
+        -- Donanım Sorunu alt kategorileri
+        ('Sunucu', 3),
+        ('Bilgisayar', 3),
+        ('Yazıcı', 3),
+        ('Tarayıcı', 3),
+        
+        -- Ağ Sorunu alt kategorileri
+        ('Router', 4),
+        ('Switch', 4),
+        ('Modem', 4),
+        ('WiFi', 4),
+        
+        -- Uygulama Sorunu alt kategorileri (ÖNEMLİ!)
+        ('Web Tarayıcı', 5),
+        ('Mobil Uygulama', 5),
+        ('Masaüstü Program', 5),
+        ('E-posta Uygulaması', 5),
+        ('Ofis Uygulamaları', 5),
+        ('Grafik Tasarım', 5),
+        ('Video Düzenleme', 5),
+        ('Oyun', 5),
+        ('Antivirüs', 5),
+        ('Yedekleme', 5),
+        
+        -- Sistem Sorunu alt kategorileri
+        ('İşletim Sistemi', 6),
+        ('Sürücü', 6),
+        ('Servis', 6),
+        ('Güncelleme', 6),
+        
+        -- Güvenlik Sorunu alt kategorileri
+        ('Virüs', 7),
+        ('Malware', 7),
+        ('Spam', 7),
+        ('Şifre', 7),
+        
+        -- Performans Sorunu alt kategorileri
+        ('Yavaşlık', 8),
+        ('Donma', 8),
+        ('Çökme', 8),
+        ('Bellek', 8)
+      `);
+      console.log('Alt-alt kategoriler eklendi');
+    }
+    
+    // 4. Mevcut durumu raporla
+    const [finalCategories] = await pool.execute('SELECT COUNT(*) as count FROM categories');
+    const [finalSubcategories] = await pool.execute('SELECT COUNT(*) as count FROM subcategories');
+    const [finalSubsubcategories] = await pool.execute('SELECT COUNT(*) as count FROM sub_subcategories');
+    
+    const report = {
+      message: 'Kategori sistemi düzeltildi',
+      categories: finalCategories[0].count,
+      subcategories: finalSubcategories[0].count,
+      subsubcategories: finalSubsubcategories[0].count,
+      details: {
+        categories: await pool.execute('SELECT * FROM categories'),
+        subcategories: await pool.execute('SELECT * FROM subcategories'),
+        subsubcategories: await pool.execute('SELECT * FROM sub_subcategories')
+      }
+    };
+    
+    console.log('Kategori sistemi düzeltildi:', report);
+    res.json(report);
+    
+  } catch (error) {
+    console.error('Kategori düzeltme hatası:', error);
+    res.status(500).json({ error: 'internal_server_error', message: error.message });
   }
 });
 

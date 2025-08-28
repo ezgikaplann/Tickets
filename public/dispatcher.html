@@ -4,275 +4,70 @@
   <meta charset="utf-8" />
   <title>HelpNest · Dispatcher Paneli</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <!-- Bootswatch (Lux) + Bootstrap Icons -->
   <link href="https://cdn.jsdelivr.net/npm/bootswatch@5.3.2/dist/lux/bootstrap.min.css" rel="stylesheet" />
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet" />
   <style>
-    :root {
-      --space-cadet: #2B2D42;
-      --cool-gray: #8D99AE;
-      --anti-flash-white: #EDF2F4;
+    :root{
+      --brand-1:#7A3DFC; /* violet */
+      --brand-2:#00E5FF; /* cyan */
+      --brand-3:#E429E8; /* magenta */
+      --ink:#0f172a;     /* deep text */
+      --muted:#64748b;   /* slate */
+      --bg:#f7f8fc;      /* page bg */
+      --card:#ffffff;    /* card bg */
     }
-    
-    body {
-      background-color: var(--cool-gray) !important;
-    }
-    
-    .navbar {
-      background-color: var(--space-cadet) !important;
-      border-bottom: 2px solid var(--cool-gray) !important;
-    }
-    
-    .navbar-brand {
-      color: var(--anti-flash-white) !important;
-      font-weight: 600;
-    }
-    
-    .btn-primary {
-      background-color: var(--space-cadet) !important;
-      border-color: var(--space-cadet) !important;
-      color: var(--anti-flash-white) !important;
-    }
-    
-    .btn-primary:hover {
-      background-color: var(--cool-gray) !important;
-      border-color: var(--cool-gray) !important;
-    }
-    
-    .btn-outline-secondary {
-      border-color: var(--cool-gray) !important;
-      color: var(--anti-flash-white) !important;
-    }
-    
-    .btn-outline-secondary:hover {
-      background-color: var(--cool-gray) !important;
-      border-color: var(--cool-gray) !important;
-      color: var(--space-cadet) !important;
-    }
-    
-    .card {
-      border: 1px solid var(--cool-gray) !important;
-      box-shadow: 0 2px 8px rgba(43, 45, 66, 0.1) !important;
-    }
-    
-    .card-header {
-      background-color: var(--space-cadet) !important;
-      color: var(--anti-flash-white) !important;
-      border-bottom: 1px solid var(--cool-gray) !important;
-    }
-    
-    .ticket-card {
-      background-color: #F4F4F9 !important;
-      border: 3px solid var(--cool-gray) !important;
-      border-radius: 15px !important;
-    }
-    
-    .ticket-card:hover {
-      background-color: #e8e8f0 !important;
-      transform: translateY(-2px) !important;
-      box-shadow: 0 4px 12px rgba(43, 45, 66, 0.15) !important;
-      transition: all 0.3s ease !important;
-      border-color: var(--space-cadet) !important;
-      border-width: 3px !important;
-    }
-    
-    .form-control, .form-select {
-      border: 1px solid var(--cool-gray) !important;
-      background-color: var(--cool-gray) !important;
-      color: white !important;
-    }
-    
-    .form-control::placeholder {
-      color: rgba(255, 255, 255, 0.8) !important;
-    }
-    
-    .form-control:focus, .form-select:focus {
-      border-color: var(--space-cadet) !important;
-      box-shadow: 0 0 0 0.2rem rgba(43, 45, 66, 0.25) !important;
-      background-color: var(--cool-gray) !important;
-      color: white !important;
-    }
-    
-    .message-bubble {
-      word-wrap: break-word;
-      box-shadow: 0 2px 6px rgba(43, 45, 66, 0.15) !important;
-    }
-    
-    .message-header {
-      border-bottom: 1px solid rgba(255,255,255,0.2) !important;
-      padding-bottom: 0.5rem;
-    }
-    
-    .message-content {
-      line-height: 1.4;
-      color: #ffffff !important;
-    }
-    
-    .message-time {
-      font-size: 0.8rem;
-    }
-    
-    /* Mesaj baloncukları için daha canlı renkler */
-    .message-bubble.bg-primary {
-      background: linear-gradient(135deg, #007bff, #0056b3) !important;
-      border: 2px solid #0056b3 !important;
-    }
-    
-    .message-bubble.bg-success {
-      background: linear-gradient(135deg, #28a745, #1e7e34) !important;
-      border: 2px solid #1e7e34 !important;
-    }
-    
-    .message-bubble.bg-info {
-      background: linear-gradient(135deg, #17a2b8, #117a8b) !important;
-      border: 2px solid #117a8b !important;
-    }
-    
-    .message-bubble.bg-warning {
-      background: linear-gradient(135deg, #ffc107, #e0a800) !important;
-      border: 2px solid #e0a800 !important;
-    }
-    
-    .message-bubble.bg-danger {
-      background: linear-gradient(135deg, #dc3545, #c82333) !important;
-      border: 2px solid #c82333 !important;
-    }
-    
-    .message-bubble.bg-secondary {
-      background: linear-gradient(135deg, #6c757d, #545b62) !important;
-      border: 2px solid #545b62 !important;
-    }
-    
-    .message-bubble.bg-dark {
-      background: linear-gradient(135deg, #343a40, #212529) !important;
-      border: 2px solid #212529 !important;
-    }
-    
-    .message-bubble.bg-purple {
-      background: linear-gradient(135deg, #6f42c1, #5a2d91) !important;
-      border: 2px solid #5a2d91 !important;
-    }
-    
-    .message-bubble.bg-teal {
-      background: linear-gradient(135deg, #20c997, #1a9f7a) !important;
-      border: 2px solid #1a9f7a !important;
-    }
-    
-    .message-bubble.bg-orange {
-      background: linear-gradient(135deg, #fd7e14, #e55a00) !important;
-      border: 2px solid #e55a00 !important;
-    }
-    
-    .message-bubble .message-content,
-    .message-bubble .message-header small,
-    .message-bubble .message-time small {
-      color: #ffffff !important;
-    }
-    
-    #messageList::-webkit-scrollbar {
-      width: 8px;
-    }
-    
-    #messageList::-webkit-scrollbar-track {
-      background: var(--anti-flash-white);
-    }
-    
-    #messageList::-webkit-scrollbar-thumb {
-      background: var(--cool-gray);
-      border-radius: 4px;
-    }
-    
-    #messageList::-webkit-scrollbar-thumb:hover {
-      background: var(--space-cadet);
-    }
-    
-    /* Durum badge'leri için daha canlı renkler */
-    .badge.bg-primary {
-      background-color: #007bff !important;
-      color: white !important;
-      font-weight: 600 !important;
-      padding: 8px 12px !important;
-      border-radius: 20px !important;
-    }
-    
-    .badge.bg-info {
-      background-color: #17a2b8 !important;
-      color: white !important;
-      font-weight: 600 !important;
-      padding: 8px 12px !important;
-      border-radius: 20px !important;
-    }
-    
-    .badge.bg-success {
-      background-color: #28a745 !important;
-      color: white !important;
-      font-weight: 600 !important;
-      padding: 8px 12px !important;
-      border-radius: 20px !important;
-    }
-    
-    .badge.bg-warning {
-      background-color: #ffc107 !important;
-      color: #212529 !important;
-      font-weight: 600 !important;
-      padding: 8px 12px !important;
-      border-radius: 20px !important;
-    }
-    
-    .badge.bg-danger {
-      background-color: #dc3545 !important;
-      color: white !important;
-      font-weight: 600 !important;
-      padding: 8px 12px !important;
-      border-radius: 20px !important;
-    }
-    
-    .badge.bg-secondary {
-      background-color: #6c757d !important;
-      color: white !important;
-      font-weight: 600 !important;
-      padding: 8px 12px !important;
-      border-radius: 20px !important;
-    }
-    
-    .badge.bg-dark {
-      background-color: #343a40 !important;
-      color: white !important;
-      font-weight: 600 !important;
-      padding: 8px 12px !important;
-      border-radius: 20px !important;
-    }
-    
-    .text-muted {
-      color: var(--cool-gray) !important;
-    }
-    
-    h2, h4, h6 {
-      color: var(--space-cadet) !important;
-    }
-    
-    .form-label {
-      color: var(--space-cadet) !important;
-      font-weight: 500;
-    }
-    
-    .btn-close {
-      filter: invert(1) !important;
-    }
-    
-    .border-bottom, .border-top {
-      border-color: var(--cool-gray) !important;
-    }
-    
-    .input-group .btn {
-      border-left: 1px solid var(--cool-gray) !important;
-    }
+    html,body{height:100%}
+    body{background: radial-gradient(1200px 600px at 10% -10%, rgba(122,61,252,.08), transparent 60%),
+                     radial-gradient(900px 500px at 90% 10%, rgba(0,229,255,.10), transparent 60%),
+                     radial-gradient(800px 400px at 40% 110%, rgba(228,41,232,.08), transparent 60%),
+                     var(--bg)!important;}
+
+    /* NAVBAR */
+    .navbar{backdrop-filter:saturate(150%) blur(8px); background:rgba(255,255,255,.7)!important; border-bottom:1px solid #e9edf5!important}
+    .navbar-brand{font-weight:700; letter-spacing:.2px;}
+
+    /* HEADER RIBBON */
+    .ribbon{border-radius:20px; border:1px solid rgba(0,0,0,.05); background:linear-gradient(135deg, rgba(122,61,252,.12), rgba(0,229,255,.12));}
+
+    /* CARDS */
+    .ticket-card{background:var(--card); border:1px solid #e9edf5; border-left:6px solid transparent; box-shadow:0 10px 30px rgba(2,6,23,.05); transition:transform .18s ease, box-shadow .18s ease}
+    .ticket-card:hover{transform:translateY(-3px); box-shadow:0 18px 40px rgba(2,6,23,.08)}
+    .subject{color:var(--ink); font-weight:600}
+    .excerpt{color:#475569}
+
+    /* STATUS + PRIORITY */
+    .status-pill{font-weight:600; padding:.35rem .6rem; border-radius:999px; border:1px solid #e2e8f0}
+    .s-new{background:#eef2ff; color:#4338ca; border-color:#c7d2fe}
+    .s-open{background:#fff7ed; color:#9a3412; border-color:#fed7aa}
+    .s-assigned{background:#ecfeff; color:#0e7490; border-color:#a5f3fc}
+    .s-resolved{background:#ecfdf5; color:#047857; border-color:#a7f3d0}
+    .s-cancelled{background:#fff1f2; color:#be123c; border-color:#fecdd3}
+    .s-closed{background:#f1f5f9; color:#334155; border-color:#e2e8f0}
+
+    .priority-chip{padding:.2rem .55rem; border-radius:999px; font-size:.75rem; font-weight:700}
+    .p-low{background:#f1f5f9; color:#334155}
+    .p-medium{background:#fef3c7; color:#92400e}
+    .p-high{background:#fee2e2; color:#991b1b}
+
+    /* SEARCH */
+    .search-wrap{position:relative}
+    .search-wrap .bi{position:absolute; left:.75rem; top:50%; transform:translateY(-50%); color:#94a3b8}
+    .search-wrap input{padding-left:2.2rem}
+
+    /* CHAT BUBBLES */
+    .bubble{max-width:78%; padding:.6rem .75rem; border-radius:16px; box-shadow:0 8px 20px rgba(2,6,23,.08)}
+    .bubble-me{margin-left:auto; background:linear-gradient(135deg, var(--brand-1), var(--brand-2)); color:#fff}
+    .bubble-other{background:#f8fafc; color:#0f172a; border:1px solid #e2e8f0}
+
+    /* UTIL */
+    .border-subtle{border:1px solid #e9edf5}
   </style>
 </head>
-<body class="bg-light">
-  <nav class="navbar bg-white border-bottom">
-    <div class="container-fluid">
-      <span class="navbar-brand">HelpNest</span>
-      <ul class="nav">
-      </ul>
+<body>
+  <nav class="navbar sticky-top">
+    <div class="container-xxl">
+      <a class="navbar-brand" href="#">HelpNest</a>
       <div class="d-flex align-items-center gap-2">
         <div class="small text-muted" id="userInfo"></div>
         <button id="btnLogout" class="btn btn-outline-secondary btn-sm">Çıkış</button>
@@ -280,85 +75,78 @@
     </div>
   </nav>
 
-  <main class="container py-4">
-    <div class="mb-4">
-      <h2 class="h4 mb-2">Tüm Talepler</h2>
-      <p class="text-muted mb-3">Sistemdeki tüm talepleri görüntüleyin ve uygun kişilere atayın.</p>
-      
-      <!-- Kategori Filtreleme -->
-      <div class="row mb-3">
-        <div class="col-md-4">
-          <label class="form-label">Kategori</label>
+  <main class="container-xxl py-4">
+    <!-- Header / Filters -->
+    <div class="ribbon p-3 p-md-4 mb-4">
+      <div class="row g-3 align-items-end">
+        <div class="col-12 col-lg-4">
+          <h2 class="h4 mb-1">Tüm Talepler</h2>
+          <div class="text-muted small">Sistemdeki tüm talepleri görüntüleyin, filtreleyin ve atayın.</div>
+        </div>
+        <div class="col-12 col-md-4 col-lg-2">
+          <label class="form-label mb-1">Kategori</label>
           <select id="categorySelect" class="form-select">
             <option value="">Tüm Kategoriler</option>
           </select>
         </div>
-        <div class="col-md-4">
-          <label class="form-label">Alt Kategori</label>
+        <div class="col-12 col-md-4 col-lg-2">
+          <label class="form-label mb-1">Alt Kategori</label>
           <select id="subcategorySelect" class="form-select">
             <option value="">Tüm Alt Kategoriler</option>
           </select>
         </div>
-        <div class="col-md-4">
-          <label class="form-label">Alt-Alt Kategori</label>
+        <div class="col-12 col-md-4 col-lg-2">
+          <label class="form-label mb-1">Alt-Alt Kategori</label>
           <select id="subsubcategorySelect" class="form-select">
             <option value="">Tüm Alt-Alt Kategoriler</option>
           </select>
         </div>
+        <div class="col-12 col-lg-2">
+          <label class="form-label mb-1">Ara</label>
+          <div class="search-wrap">
+            <i class="bi bi-search"></i>
+            <input id="search" class="form-control" placeholder="Konu / açıklama ara (Enter)…" />
+          </div>
+        </div>
       </div>
-      
-      <input id="search" class="form-control" placeholder="Konu/açıklama ara (Enter)..." />
     </div>
 
-    <!-- Mesajlaşma paneli - sadece talep seçildiğinde görünür -->
-    <div id="chatPanel" class="card mb-3" style="display: none;">
-      <div class="card-header d-flex justify-content-between align-items-center">
+    <!-- Chat Panel (inline) -->
+    <div id="chatPanel" class="card border-subtle mb-3" style="display: none;">
+      <div class="card-header bg-white border-subtle d-flex justify-content-between align-items-center">
         <h6 class="mb-0" id="chatTitle">Talep Detayı</h6>
         <button type="button" class="btn-close" id="closeChat"></button>
       </div>
-      
       <div class="card-body p-0">
-        <!-- Talep bilgileri -->
-        <div class="p-3 border-bottom">
-          <h6 id="ticketSubject">Konu</h6>
-          <p class="small text-muted mb-2" id="ticketDescription">Açıklama</p>
-          <div class="row">
-            <div class="col-6">
-              <small class="text-muted">Durum:</small><br>
-              <span id="ticketStatus" class="badge bg-secondary">Durum</span>
-            </div>
-            <div class="col-6">
-              <small class="text-muted">Öncelik:</small><br>
-              <span id="ticketPriority" class="badge bg-warning">Öncelik</span>
-            </div>
+        <div class="p-3 border-bottom border-subtle">
+          <h6 id="ticketSubject" class="mb-1">Konu</h6>
+          <div class="small text-muted mb-2" id="ticketDescription">Açıklama</div>
+          <div class="d-flex flex-wrap gap-2 align-items-center">
+            <span id="ticketStatus" class="status-pill s-new">Yeni</span>
+            <span id="ticketPriority" class="priority-chip p-medium">Orta</span>
           </div>
         </div>
-        
-        <!-- Mesaj listesi -->
-        <div id="messageList" class="p-3" style="height: 300px; overflow-y: auto;">
-          <div class="text-center text-muted">
-            <small>Henüz mesaj yok</small>
-          </div>
+        <div id="messageList" class="p-3" style="height: 320px; overflow-y:auto;">
+          <div class="text-center text-muted"><small>Henüz mesaj yok</small></div>
         </div>
-        
-        <!-- Mesaj gönderme -->
-        <div class="p-3 border-top">
+        <div class="p-3 border-top border-subtle">
           <div class="input-group">
-            <input type="text" class="form-control" id="messageInput" placeholder="Mesaj yazın..." />
-            <button class="btn btn-primary" type="button" id="sendMessage">
-              <i class="bi bi-send"></i> Gönder
-            </button>
+            <input type="text" class="form-control" id="messageInput" placeholder="Mesaj yazın…" />
+            <button class="btn btn-primary" type="button" id="sendMessage"><i class="bi bi-send"></i></button>
           </div>
         </div>
       </div>
     </div>
 
-    <!-- Talep listesi - tüm sayfayı kaplar -->
+    <!-- Ticket List -->
     <div id="list" class="row g-3"></div>
-    <div id="empty" class="text-muted d-none">Kayıt yok.</div>
+    <div id="empty" class="text-muted text-center d-none py-5">
+      <svg width="72" height="72" viewBox="0 0 24 24" fill="none" class="mb-2" xmlns="http://www.w3.org/2000/svg"><path d="M20 7H4v10h16V7Zm-5 7H9" stroke="#94a3b8" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/><path d="M7 7V5a2 2 0 0 1 2-2h6a2 2 0 0 1 2 2v2" stroke="#94a3b8" stroke-width="1.5"/></svg>
+      <div>Hiç talep bulunamadı.</div>
+    </div>
   </main>
 
-  <!-- Dispatcher için atama modalı -->
+  <!-- Assign Modal -->
   <div class="modal fade" id="assignModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog">
       <div class="modal-content">
@@ -384,7 +172,7 @@
     </div>
   </div>
 
-  <!-- Dispatcher için düzenleme modalı -->
+  <!-- Edit Modal -->
   <div class="modal fade" id="editModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog">
       <div class="modal-content">
@@ -425,763 +213,296 @@
     let me = null;
     let assignableUsers = [];
     let selectedTicketId = null;
+    let selectedTicket = null;
+    let messages = [];
     let categories = [];
     let subcategories = [];
     let subsubcategories = [];
 
-    // Giriş/rol kontrolü
+    // Session + role guard
     (async () => {
       const r = await fetch('/auth/me', { credentials: 'include' });
       if (!r.ok) return window.location.href = '/login.html';
       me = (await r.json()).user;
-
-      // sadece dispatcher girebilsin
       if (me.role !== 'dispatcher') {
-        // end_user ise kendi paneline; diğer roller dashboard'a
         return window.location.href = (me.role === 'end_user') ? '/user.html' : '/dashboard.html';
       }
-
       $('#userInfo').textContent = `${me.full_name} • ${me.role}`;
 
-      // Kategorileri yükle
       await loadCategories();
 
-      // atanabilir kullanıcıları getir
       try {
         const ur = await fetch('/users', { credentials: 'include' });
         if (!ur.ok) throw new Error();
-        assignableUsers = await ur.json(); // [{id, full_name}]
-        $('#assignUserSelect').innerHTML = assignableUsers
-          .map(u => `<option value="${u.id}">${escapeHtml(u.full_name)}</option>`)
-          .join('');
-      } catch {
-        $('#assignUsersFallback').classList.remove('d-none');
-      }
+        assignableUsers = await ur.json();
+        $('#assignUserSelect').innerHTML = assignableUsers.map(u=>`<option value="${u.id}">${escapeHtml(u.full_name)}</option>`).join('');
+      } catch { $('#assignUsersFallback').classList.remove('d-none'); }
 
       await loadInbox();
       bindAssignEvents();
     })();
 
-    // Çıkış
+    // Logout
     $('#btnLogout').addEventListener('click', async () => {
       try { await fetch('/auth/logout', { method: 'POST', credentials: 'include' }); } catch {}
-      localStorage.removeItem('helpdesk_user');
-      window.location.href = '/login.html';
+      localStorage.removeItem('helpdesk_user'); window.location.href = '/login.html';
     });
 
-    // Kategorileri yükle
-    async function loadCategories() {
-      try {
+    // Filters
+    async function loadCategories(){
+      try{
         const res = await fetch('/tickets/categories', { credentials: 'include' });
-        if (res.ok) {
+        if (res.ok){
           categories = await res.json();
-          $('#categorySelect').innerHTML = '<option value="">Tüm Kategoriler</option>' + 
-            categories.map(c => `<option value="${c.id}">${escapeHtml(c.name)}</option>`).join('');
+          $('#categorySelect').innerHTML = '<option value="">Tüm Kategoriler</option>' + categories.map(c=>`<option value="${c.id}">${escapeHtml(c.name)}</option>`).join('');
         }
-      } catch (err) {
-        console.error('Kategoriler yüklenemedi:', err);
-      }
+      }catch(e){ console.error('Kategoriler yüklenemedi:', e); }
     }
 
-    // Alt kategorileri yükle
-    async function loadSubcategories(categoryId) {
-      try {
-        if (!categoryId) {
-          $('#subcategorySelect').innerHTML = '<option value="">Tüm Alt Kategoriler</option>';
-          $('#subsubcategorySelect').innerHTML = '<option value="">Tüm Alt-Alt Kategoriler</option>';
-          return;
-        }
-        
+    async function loadSubcategories(categoryId){
+      try{
+        if (!categoryId){ $('#subcategorySelect').innerHTML = '<option value="">Tüm Alt Kategoriler</option>'; $('#subsubcategorySelect').innerHTML = '<option value="">Tüm Alt-Alt Kategoriler</option>'; return; }
         const res = await fetch(`/tickets/subcategories?category_id=${categoryId}`, { credentials: 'include' });
-        if (res.ok) {
+        if (res.ok){
           subcategories = await res.json();
-          $('#subcategorySelect').innerHTML = '<option value="">Tüm Alt Kategoriler</option>' + 
-            subcategories.map(s => `<option value="${s.id}">${escapeHtml(s.name)}</option>`).join('');
+          $('#subcategorySelect').innerHTML = '<option value="">Tüm Alt Kategoriler</option>' + subcategories.map(s=>`<option value="${s.id}">${escapeHtml(s.name)}</option>`).join('');
         }
-        
-        // Alt kategori değiştiğinde alt-alt kategorileri temizle
         $('#subsubcategorySelect').innerHTML = '<option value="">Tüm Alt-Alt Kategoriler</option>';
-      } catch (err) {
-        console.error('Alt kategoriler yüklenemedi:', err);
-      }
+      }catch(e){ console.error('Alt kategoriler yüklenemedi:', e); }
     }
 
-    // Alt-alt kategorileri yükle
-    async function loadSubsubcategories(subcategoryId) {
-      try {
-        if (!subcategoryId) {
-          $('#subsubcategorySelect').innerHTML = '<option value="">Tüm Alt-Alt Kategoriler</option>';
-          return;
-        }
-        
+    async function loadSubsubcategories(subcategoryId){
+      try{
+        if (!subcategoryId){ $('#subsubcategorySelect').innerHTML = '<option value="">Tüm Alt-Alt Kategoriler</option>'; return; }
         const res = await fetch(`/tickets/subsubcategories?subcategory_id=${subcategoryId}`, { credentials: 'include' });
-        if (res.ok) {
+        if (res.ok){
           subsubcategories = await res.json();
-          $('#subsubcategorySelect').innerHTML = '<option value="">Tüm Alt-Alt Kategoriler</option>' + 
-            subsubcategories.map(s => `<option value="${s.id}">${escapeHtml(s.name)}</option>`).join('');
+          $('#subsubcategorySelect').innerHTML = '<option value="">Tüm Alt-Alt Kategoriler</option>' + subsubcategories.map(s=>`<option value="${s.id}">${escapeHtml(s.name)}</option>`).join('');
         }
-      } catch (err) {
-        console.error('Alt-alt kategoriler yüklenemedi:', err);
-      }
+      }catch(e){ console.error('Alt-alt kategoriler yüklenemedi:', e); }
     }
 
-    // Kategori değişikliklerini dinle
-    $('#categorySelect').addEventListener('change', async (e) => {
-      const categoryId = e.target.value;
-      await loadSubcategories(categoryId);
-      await loadInbox();
-    });
+    $('#categorySelect').addEventListener('change', async (e)=>{ await loadSubcategories(e.target.value); await loadInbox(); });
+    $('#subcategorySelect').addEventListener('change', async (e)=>{ await loadSubsubcategories(e.target.value); await loadInbox(); });
+    $('#subsubcategorySelect').addEventListener('change', async ()=>{ await loadInbox(); });
 
-    $('#subcategorySelect').addEventListener('change', async (e) => {
-      const subcategoryId = e.target.value;
-      await loadSubsubcategories(subcategoryId);
-      await loadInbox();
-    });
-
-    $('#subsubcategorySelect').addEventListener('change', async () => {
-      await loadInbox();
-    });
+    // Search (debounce + enter)
+    let searchTimeout;
+    $('#search').addEventListener('input', async ()=>{ clearTimeout(searchTimeout); searchTimeout = setTimeout(loadInbox, 300); });
+    $('#search').addEventListener('keydown', async (e)=>{ if (e.key === 'Enter'){ clearTimeout(searchTimeout); await loadInbox(); } });
 
     // Tickets fetch
-    async function fetchTickets(params = {}) {
+    async function fetchTickets(params = {}){
       const qs = new URLSearchParams(params).toString();
       const r = await fetch('/tickets' + (qs ? `?${qs}` : ''), { credentials: 'include' });
       if (!r.ok) throw new Error('tickets failed');
       return r.json();
     }
 
-    async function loadInbox() {
+    async function loadInbox(){
       const q = $('#search').value.trim();
       const categoryId = $('#categorySelect').value;
       const subcategoryId = $('#subcategorySelect').value;
       const subsubcategoryId = $('#subsubcategorySelect').value;
-      
       const params = {};
       if (q) params.q = q;
       if (categoryId) params.category_id = categoryId;
       if (subcategoryId) params.subcategory_id = subcategoryId;
       if (subsubcategoryId) params.sub_subcategory_id = subsubcategoryId;
-      
+
       const list = await fetchTickets(params);
-      
-      // Yeni sıralama: Çözülmeyenler → Çözülenler → İptal olanlar (en altta)
+
+      // Sort: unresolved -> resolved -> cancelled, with priority/date tie-breakers
       list.sort((a, b) => {
-        // 1. Öncelik: İptal olanlar (CANCELLED) her zaman en altta
-        if (a.status === 'CANCELLED' && b.status !== 'CANCELLED') return 1;  // a aşağıda
-        if (a.status !== 'CANCELLED' && b.status === 'CANCELLED') return -1; // b aşağıda
-        
-        // 2. İptal olanlar kendi aralarında tarihe göre sırala (yeni önce)
-        if (a.status === 'CANCELLED' && b.status === 'CANCELLED') {
-          return new Date(b.created_at) - new Date(a.created_at);
-        }
-        
-        // 3. Çözülmeyenler (NEW, OPEN, ASSIGNED) en yukarıda
-        const aIsResolved = ['RESOLVED', 'CLOSED'].includes(a.status);
-        const bIsResolved = ['RESOLVED', 'CLOSED'].includes(b.status);
-        
-        if (!aIsResolved && bIsResolved) return -1; // a yukarıda
-        if (aIsResolved && !bIsResolved) return 1;  // b yukarıda
-        
-        // 4. Çözülenler (RESOLVED, CLOSED) ortada
-        if (aIsResolved && bIsResolved) {
-          // Çözülenler kendi aralarında tarihe göre sırala (yeni önce)
-          return new Date(b.created_at) - new Date(a.created_at);
-        }
-        
-        // 5. Çözülmeyenler kendi aralarında önceliğe göre sırala: HIGH → MEDIUM → LOW
-        if (!aIsResolved && !bIsResolved) {
-          const priorityOrder = { 'HIGH': 1, 'MEDIUM': 2, 'LOW': 3 };
-          const priorityDiff = priorityOrder[a.priority] - priorityOrder[b.priority];
-          if (priorityDiff !== 0) return priorityDiff;
-          
-          // Aynı öncelikteyse tarihe göre sırala (yeni önce)
-          return new Date(b.created_at) - new Date(a.created_at);
-        }
-        
-        return 0;
+        if (a.status === 'CANCELLED' && b.status !== 'CANCELLED') return 1;
+        if (a.status !== 'CANCELLED' && b.status === 'CANCELLED') return -1;
+        if (a.status === 'CANCELLED' && b.status === 'CANCELLED') return new Date(b.created_at) - new Date(a.created_at);
+        const aResolved = ['RESOLVED', 'CLOSED'].includes(a.status);
+        const bResolved = ['RESOLVED', 'CLOSED'].includes(b.status);
+        if (!aResolved && bResolved) return -1;
+        if (aResolved && !bResolved) return 1;
+        if (aResolved && bResolved) return new Date(b.created_at) - new Date(a.created_at);
+        const prio = { HIGH:1, MEDIUM:2, LOW:3 };
+        const d = (prio[a.priority]||2) - (prio[b.priority]||2);
+        if (d !== 0) return d;
+        return new Date(b.created_at) - new Date(a.created_at);
       });
-      
+
       render(list);
     }
 
-    function render(list) {
+    function render(list){
       const el = $('#list'), empty = $('#empty');
-      if (!list.length) { 
-        el.innerHTML = ''; 
-        empty.classList.remove('d-none'); 
-        return; 
-      }
+      if (!list.length){ el.innerHTML=''; empty.classList.remove('d-none'); return; }
       empty.classList.add('d-none');
-      
-      // Dikey liste görünümü için vstack kullan
       el.innerHTML = list.map(t => card(t)).join('');
     }
 
-    function card(t) {
-      // Eğer talep iptal edilmişse farklı görünüm
-      if (t.status === 'CANCELLED') {
-        return `
-        <div class="card mb-3 ticket-card" style="cursor: pointer;" onclick="selectTicket(${t.id})">
-          <div class="card-body">
-            <div class="d-flex justify-content-between align-items-start gap-3">
-              <div class="flex-grow-1">
-                <strong>${escapeHtml(t.subject||'(Konu yok)')}</strong>
-                <div class="small text-muted">
-                  #${t.id} • ${new Date(t.created_at).toLocaleString('tr-TR')} • Öncelik: ${getPriorityText(t.priority)}
-                </div>
-                <div class="small mt-2">${escapeHtml((t.description||'').slice(0,180))}</div>
-              </div>
-              <div class="text-end">
-                <div class="mb-2">
-                  <span class="badge ${badgeClass(t.status)}">${getStatusText(t.status)}</span>
-                </div>
-                <div class="mt-2">
-                  <button class="btn btn-sm btn-danger btn-delete ms-1" data-id="${t.id}">Sil</button>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>`;
+    function statusClass(s){
+      switch(s){
+        case 'NEW': return 's-new';
+        case 'OPEN': return 's-open';
+        case 'ASSIGNED': return 's-assigned';
+        case 'RESOLVED': return 's-resolved';
+        case 'CANCELLED': return 's-cancelled';
+        case 'CLOSED': return 's-closed';
+        default: return 's-closed';
       }
-      
-      // Çözülmüş talepler için atama ve iptal butonları gösterme
-      const isResolved = ['RESOLVED', 'CLOSED'].includes(t.status);
-      
-      // Normal talepler için mevcut görünüm + tıklanabilir
-      const assignBtn = !isResolved ? `<button class="btn btn-sm btn-primary btn-assign" data-id="${t.id}">Atama Yap</button>` : '';
-      const cancelBtn = !isResolved ? `<button class="btn btn-sm btn-warning btn-cancel ms-1" data-id="${t.id}">İptal Et</button>` : '';
-      
-      // Düzenleme butonu: İptal olmuş ve çözülmüş talepler dışında tüm taleplerde görünür
-      const editBtn = !['CANCELLED', 'RESOLVED', 'CLOSED'].includes(t.status) ? 
-        `<button class="btn btn-sm btn-info btn-edit ms-1" data-id="${t.id}">Düzenle</button>` : '';
-      
-      const deleteBtn = `<button class="btn btn-sm btn-danger btn-delete ms-1" data-id="${t.id}">Sil</button>`;
-      
-      // Öncelik seçimi dropdown'ı - sadece çözülmemiş taleplerde
-      const prioritySelect = !isResolved ? `
-        <select class="form-select form-select-sm priority-select" data-id="${t.id}" style="width: auto;">
-          <option value="LOW" ${t.priority === 'LOW' ? 'selected' : ''}>Düşük</option>
-          <option value="MEDIUM" ${t.priority === 'MEDIUM' ? 'selected' : ''}>Orta</option>
-          <option value="HIGH" ${t.priority === 'HIGH' ? 'selected' : ''}>Yüksek</option>
-        </select>
-      ` : '';
+    }
+
+    function statusText(s){
+      return ({ NEW:'Yeni', OPEN:'Açık', ASSIGNED:'Atandı', RESOLVED:'Çözüldü', CANCELLED:'İptal', CLOSED:'Kapalı' }[s] || s);
+    }
+
+    function priorityChip(p){
+      const cls = p==='HIGH' ? 'p-high' : p==='LOW' ? 'p-low' : 'p-medium';
+      const text = p==='HIGH' ? 'Yüksek' : p==='LOW' ? 'Düşük' : 'Orta';
+      return `<span class="priority-chip ${cls}">${text}</span>`
+    }
+
+    function cardBorder(s){
+      return ({ NEW:'#7A3DFC', OPEN:'#FB923C', ASSIGNED:'#00B8D9', RESOLVED:'#22C55E', CANCELLED:'#EF4444', CLOSED:'#94A3B8' }[s] || '#94A3B8');
+    }
+
+    function card(t){
+      const created = new Date(t.created_at).toLocaleString('tr-TR');
+      const border = cardBorder(t.status);
+      const isResolved = ['RESOLVED','CLOSED'].includes(t.status);
+
+      const assignBtn = !isResolved && t.status !== 'CANCELLED' ? `<button class="btn btn-sm btn-primary btn-assign" data-id="${t.id}"><i class="bi bi-person-check"></i> Atama Yap</button>` : '';
+      const cancelBtn = !isResolved && t.status !== 'CANCELLED' ? `<button class="btn btn-sm btn-warning btn-cancel ms-1" data-id="${t.id}"><i class="bi bi-x-circle"></i> İptal Et</button>` : '';
+      const editBtn = !['CANCELLED','RESOLVED','CLOSED'].includes(t.status) ? `<button class="btn btn-sm btn-info btn-edit ms-1" data-id="${t.id}"><i class="bi bi-pencil"></i> Düzenle</button>` : '';
+      const deleteBtn = `<button class="btn btn-sm btn-danger btn-delete ms-1" data-id="${t.id}"><i class="bi bi-trash"></i> Sil</button>`;
+      const prioritySelect = (!isResolved && t.status !== 'CANCELLED') ? `
+        <select class="form-select form-select-sm priority-select mt-2" data-id="${t.id}" style="width:auto;">
+          <option value="LOW" ${t.priority==='LOW'?'selected':''}>Düşük</option>
+          <option value="MEDIUM" ${t.priority==='MEDIUM'?'selected':''}>Orta</option>
+          <option value="HIGH" ${t.priority==='HIGH'?'selected':''}>Yüksek</option>
+        </select>` : '';
 
       return `
-      <div class="card mb-3 ticket-card" style="cursor: pointer;" onclick="selectTicket(${t.id})">
-        <div class="card-body">
+      <div class="col-12">
+        <div class="ticket-card p-3 rounded-3" style="border-left-color:${border}" role="button">
           <div class="d-flex justify-content-between align-items-start gap-3">
-            <div class="flex-grow-1">
-              <strong>${escapeHtml(t.subject||'(Konu yok)')}</strong>
-              <div class="small text-muted">
-                #${t.id} • ${new Date(t.created_at).toLocaleString('tr-TR')}
+            <div class="flex-grow-1" onclick="selectTicket(${Number(t.id)})">
+              <div class="d-flex justify-content-between align-items-start">
+                <div class="subject">${escapeHtml(t.subject||'(Konu yok)')}</div>
+                <span class="status-pill ${statusClass(t.status)}">${statusText(t.status)}</span>
               </div>
-              <div class="small mt-2">${escapeHtml((t.description||'').slice(0,180))}</div>
+              <div class="small text-muted mt-1">#${t.id} • ${created} • ${priorityChip(t.priority)}</div>
+              <div class="excerpt small mt-2">${escapeHtml((t.description||'').slice(0,200))}</div>
+              ${t.assignee_name ? `<div class="small mt-2 text-muted"><i class="bi bi-people"></i> ${escapeHtml(t.assignee_name)}</div>` : ''}
             </div>
             <div class="text-end">
-              <div class="mb-2">
-                <span class="badge ${badgeClass(t.status)}">${getStatusText(t.status)}</span>
-                ${prioritySelect}
-              </div>
-              ${t.assignee_name ? `<div class="small mt-1 text-muted">${escapeHtml(t.assignee_name)}</div>` : ''}
-              <div class="mt-2">
-                ${assignBtn}
-                ${cancelBtn}
-                ${editBtn}
-                ${deleteBtn}
-              </div>
+              ${assignBtn}
+              ${cancelBtn}
+              ${editBtn}
+              ${deleteBtn}
+              ${prioritySelect}
             </div>
           </div>
         </div>
       </div>`;
     }
 
-    function escapeHtml(s){return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
+    function escapeHtml(s){return String(s||'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;','\'':'&#39;'}[c]))}
 
-    // Arama
-    let searchTimeout;
-    $('#search').addEventListener('input', async (e) => {
-      // Önceki timeout'u temizle
-      clearTimeout(searchTimeout);
-      
-      // 300ms sonra arama yap
-      searchTimeout = setTimeout(async () => {
-        await loadInbox();
-      }, 300);
+    // Delegated actions on list
+    $('#list').addEventListener('click', async (e)=>{
+      const btnAssign = e.target.closest('.btn-assign');
+      if (btnAssign){ e.stopPropagation(); selectedTicketId = btnAssign.getAttribute('data-id'); $('#assignWarn').classList.add('d-none'); bootstrap.Modal.getOrCreateInstance('#assignModal').show(); return; }
+      const btnCancel = e.target.closest('.btn-cancel');
+      if (btnCancel){ e.stopPropagation(); const id = btnCancel.getAttribute('data-id'); if(!confirm('Bu talebi iptal etmek istediğinizden emin misiniz?')) return; try{ const res = await fetch(`/tickets/${id}/cancel`, { method:'PUT', credentials:'include' }); if(!res.ok){ const err = await res.json().catch(()=>({})); throw new Error(err.error||`HTTP ${res.status}`);} await loadInbox(); }catch(err){ alert('Talep iptal edilemedi: '+err.message);} return; }
+      const btnEdit = e.target.closest('.btn-edit');
+      if (btnEdit){ e.stopPropagation(); await openEditModal(btnEdit.getAttribute('data-id')); return; }
+      const btnDelete = e.target.closest('.btn-delete');
+      if (btnDelete){ e.stopPropagation(); const id = btnDelete.getAttribute('data-id'); if(!confirm('Bu talebi silmek istediğinizden emin misiniz? Bu işlem geri alınamaz!')) return; try{ const res = await fetch(`/tickets/${id}`, { method:'DELETE', credentials:'include' }); if(!res.ok){ const err = await res.json().catch(()=>({})); throw new Error(err.error||`HTTP ${res.status}`);} await loadInbox(); alert('Talep başarıyla silindi'); }catch(err){ alert('Talep silinemedi: '+err.message);} return; }
     });
 
-    // Enter tuşu ile anında arama (debounce olmadan)
-    $('#search').addEventListener('keydown', async (e) => {
-      if (e.key === 'Enter') {
-        clearTimeout(searchTimeout); // Timeout'u iptal et
-        await loadInbox();
-      }
+    // Priority change
+    $('#list').addEventListener('change', async (e)=>{
+      const sel = e.target.closest('.priority-select');
+      if (!sel) return;
+      const ticketId = sel.getAttribute('data-id');
+      const newPriority = sel.value;
+      try {
+        const res = await fetch(`/tickets/${ticketId}/priority`, { method:'PUT', headers:{'Content-Type':'application/json'}, credentials:'include', body:JSON.stringify({ priority:newPriority }) });
+        if (!res.ok){ const err = await res.json().catch(()=>({})); throw new Error(err.error||`HTTP ${res.status}`);} await loadInbox();
+      } catch(err){ alert('Öncelik güncellenemedi: '+err.message); await loadInbox(); }
     });
 
-    // Atama akışı
-    function bindAssignEvents() {
-      $('#btnDoAssign').addEventListener('click', async () => {
+    // Assign flow
+    function bindAssignEvents(){
+      $('#btnDoAssign').addEventListener('click', async ()=>{
         const userId = $('#assignUserSelect').value;
-        if (!userId) { showAssignWarn('Lütfen bir kullanıcı seçin.'); return; }
-        try {
-          const res = await fetch(`/tickets/${selectedTicketId}/assign`, {
-            method: 'PUT',
-            headers: { 'Content-Type':'application/json' },
-            credentials: 'include',
-            body: JSON.stringify({ assigned_to: Number(userId) })
-          });
-          if (!res.ok) {
-            const err = await res.json().catch(()=>({}));
-            throw new Error(err.error || `HTTP ${res.status}`);
-          }
-          bootstrap.Modal.getInstance('#assignModal')?.hide();
-          await loadInbox();
-        } catch (err) {
-          showAssignWarn('Atama başarısız: ' + err.message);
-        }
+        if (!userId){ showAssignWarn('Lütfen bir kullanıcı seçin.'); return; }
+        try{
+          const res = await fetch(`/tickets/${selectedTicketId}/assign`, { method:'PUT', headers:{'Content-Type':'application/json'}, credentials:'include', body:JSON.stringify({ assigned_to:Number(userId) }) });
+          if (!res.ok){ const err = await res.json().catch(()=>({})); throw new Error(err.error||`HTTP ${res.status}`);} bootstrap.Modal.getInstance('#assignModal')?.hide(); await loadInbox();
+        }catch(err){ showAssignWarn('Atama başarısız: '+err.message); }
       });
     }
+    function showAssignWarn(msg){ const el = $('#assignWarn'); el.textContent = msg; el.classList.remove('d-none'); }
 
-    function showAssignWarn(msg) {
-      const el = $('#assignWarn');
-      el.textContent = msg;
-      el.classList.remove('d-none');
-    }
-
-    let selectedTicket = null;
-    let messages = [];
-
-    // Talep kartına tıklama olayı - event delegation ile
-    $('#list').addEventListener('click', async (e) => {
-      // Atama butonu kontrolü
-      const assignBtn = e.target.closest('.btn-assign');
-      if (assignBtn) {
-        e.stopPropagation(); // Event'i durdur, selectTicket çalışmasın
-        const ticketId = assignBtn.getAttribute('data-id');
-        
-        // Talep durumunu kontrol et
-        try {
-          const ticketRes = await fetch(`/tickets/${ticketId}`, { credentials: 'include' });
-          if (!ticketRes.ok) throw new Error('Talep bilgileri alınamadı');
-          
-          const ticket = await ticketRes.json();
-          
-          // Çözülmüş taleplere atama yapılmasını engelle
-          if (['RESOLVED', 'CLOSED'].includes(ticket.status)) {
-            alert('Çözülmüş taleplere atama yapılamaz!');
-            return;
-          }
-          
-          selectedTicketId = ticketId;
-          $('#assignWarn').classList.add('d-none');
-          bootstrap.Modal.getOrCreateInstance('#assignModal').show();
-          
-        } catch (err) {
-          alert('Talep bilgileri alınamadı: ' + err.message);
-        }
-        return;
-      }
-      
-      // İptal etme butonu kontrolü
-      const cancelBtn = e.target.closest('.btn-cancel');
-      if (cancelBtn) {
-        e.stopPropagation(); // Event'i durdur, selectTicket çalışmasın
-        const ticketId = cancelBtn.getAttribute('data-id');
-        
-        if (!confirm('Bu talebi iptal etmek istediğinizden emin misiniz?')) return;
-        
-        try {
-          const res = await fetch(`/tickets/${ticketId}/cancel`, {
-            method: 'PUT',
-            headers: { 'Content-Type': 'application/json' },
-            credentials: 'include'
-          });
-          
-          if (!res.ok) {
-            const err = await res.json().catch(()=>({}));
-            throw new Error(err.error || `HTTP ${res.status}`);
-          }
-          
-          // Butonun rengini kırmızı yap ve "İptal" yaz
-          cancelBtn.className = 'btn btn-sm btn-danger btn-cancel ms-1';
-          cancelBtn.textContent = 'İptal';
-          cancelBtn.disabled = true;
-          
-          // Aynı karttaki "Atama Yap" butonunu bul ve gizle
-          const ticketCard = cancelBtn.closest('.card');
-          const assignBtnInCard = ticketCard.querySelector('.btn-assign');
-          if (assignBtnInCard) {
-            assignBtnInCard.style.display = 'none';
-          }
-          
-        } catch (err) {
-          alert('Talep iptal edilemedi: ' + err.message);
-        }
-        return;
-      }
-      
-      // Düzenleme butonu kontrolü
-      const editBtn = e.target.closest('.btn-edit');
-      if (editBtn) {
-        e.stopPropagation(); // Event'i durdur, selectTicket çalışmasın
-        const ticketId = editBtn.getAttribute('data-id');
-        await openEditModal(ticketId);
-        return;
-      }
-      
-      // Silme butonu kontrolü
-      const deleteBtn = e.target.closest('.btn-delete');
-      if (deleteBtn) {
-        e.stopPropagation(); // Event'i durdur, selectTicket çalışmasın
-        const ticketId = deleteBtn.getAttribute('data-id');
-        
-        if (!confirm('Bu talebi silmek istediğinizden emin misiniz? Bu işlem geri alınamaz!')) return;
-        
-        try {
-          const res = await fetch(`/tickets/${ticketId}`, {
-            method: 'DELETE',
-            credentials: 'include'
-          });
-          
-          if (!res.ok) {
-            const err = await res.json().catch(()=>({}));
-            throw new Error(err.error || `HTTP ${res.status}`);
-          }
-          
-          // Başarılı silme sonrası listeyi yenile
-          await loadInbox();
-          alert('Talep başarıyla silindi');
-          
-        } catch (err) {
-          alert('Talep silinemedi: ' + err.message);
-        }
-        return;
-      }
-      
-      // Öncelik seçimi kontrolü
-      const prioritySelect = e.target.closest('.priority-select');
-      if (prioritySelect) {
-        e.stopPropagation(); // Event'i durdur, selectTicket çalışmasın
-        return;
-      }
-      
-      // Eğer buton değilse, talep seçimi yap
-      const ticketCard = e.target.closest('.card');
-      if (ticketCard && !e.target.closest('button') && !e.target.closest('select')) {
-        const ticketId = ticketCard.querySelector('.btn-assign')?.getAttribute('data-id');
-        if (ticketId) {
-          await selectTicket(ticketId);
-        }
-      }
-    });
-
-    // Öncelik değişikliği için ayrı event listener
-    $('#list').addEventListener('change', async (e) => {
-      const prioritySelect = e.target.closest('.priority-select');
-      if (!prioritySelect) return;
-      
-      const ticketId = prioritySelect.getAttribute('data-id');
-      const newPriority = prioritySelect.value;
-      
-      try {
-        const res = await fetch(`/tickets/${ticketId}/priority`, {
-          method: 'PUT',
-          headers: { 'Content-Type': 'application/json' },
-          credentials: 'include',
-          body: JSON.stringify({ priority: newPriority })
-        });
-        
-        if (!res.ok) {
-          const err = await res.json().catch(()=>({}));
-          throw new Error(err.error || `HTTP ${res.status}`);
-        }
-        
-        // Liste yenile
-        await loadInbox();
-      } catch (err) {
-        alert('Öncelik güncellenemedi: ' + err.message);
-        // Hata durumunda eski değere geri dön
-        await loadInbox();
-      }
-    });
-
-    // Talep seçme fonksiyonu
-    async function selectTicket(ticketId) {
-      try {
-        console.log('Talep seçiliyor:', ticketId);
-        
-        // Talep bilgilerini getir
-        const ticketRes = await fetch(`/tickets/${ticketId}`, { credentials: 'include' });
+    // Ticket selection + chat
+    async function selectTicket(ticketId){
+      try{
+        const ticketRes = await fetch(`/tickets/${ticketId}`, { credentials:'include' });
         if (!ticketRes.ok) throw new Error('Talep bilgileri alınamadı');
-        
         selectedTicket = await ticketRes.json();
-        console.log('Selected ticket:', selectedTicket);
-        
-        // Mesajları getir
-        try {
-          const messagesRes = await fetch(`/tickets/${ticketId}/messages`, { credentials: 'include' });
-          if (messagesRes.ok) {
-            messages = await messagesRes.json();
-          } else {
-            messages = [];
-          }
-        } catch (msgErr) {
-          console.log('Messages fetch error:', msgErr);
-          messages = [];
-        }
-        
-        // UI'ı güncelle
+        const messagesRes = await fetch(`/tickets/${ticketId}/messages`, { credentials:'include' });
+        messages = messagesRes.ok ? await messagesRes.json() : [];
         updateChatUI();
-        
-        // Mesajlaşma panelini göster
-        const chatPanel = $('#chatPanel');
-        
-        if (chatPanel) {
-          chatPanel.style.display = 'block';
-        }
-        
-        // Mesaj listesini scroll et
-        setTimeout(() => {
-          const messageList = $('#messageList');
-          if (messageList) {
-            messageList.scrollTop = messageList.scrollHeight;
-          }
-        }, 100);
-        
-      } catch (err) {
-        console.error('Talep seçme hatası:', err);
-        alert('Talep seçilemedi: ' + err.message);
-      }
+        const chatPanel = $('#chatPanel'); chatPanel.style.display='block';
+        setTimeout(()=>{ const ml = $('#messageList'); ml.scrollTop = ml.scrollHeight; }, 100);
+      }catch(err){ alert('Talep açılamadı: '+err.message); }
     }
 
-    // Chat UI'ını güncelle
-    function updateChatUI() {
+    function updateChatUI(){
       if (!selectedTicket) return;
-      
-      const chatTitle = $('#chatTitle');
-      const ticketSubject = $('#ticketSubject');
-      const ticketDescription = $('#ticketDescription');
-      const ticketStatus = $('#ticketStatus');
-      const ticketPriority = $('#ticketPriority');
-      
-      if (chatTitle) chatTitle.textContent = `#${selectedTicket.id} - ${selectedTicket.subject || 'Konu yok'}`;
-      if (ticketSubject) ticketSubject.textContent = selectedTicket.subject || 'Konu yok';
-      if (ticketDescription) ticketDescription.textContent = selectedTicket.description || 'Açıklama yok';
-      if (ticketStatus) ticketStatus.textContent = selectedTicket.status;
-      if (ticketPriority) ticketPriority.textContent = selectedTicket.priority;
-      
-      // Mesajları göster
+      $('#chatTitle').textContent = `#${selectedTicket.id} - ${selectedTicket.subject || 'Konu yok'}`;
+      $('#ticketSubject').textContent = selectedTicket.subject || 'Konu yok';
+      $('#ticketDescription').textContent = selectedTicket.description || 'Açıklama yok';
+      const st = $('#ticketStatus'); st.textContent = statusText(selectedTicket.status); st.className = `status-pill ${statusClass(selectedTicket.status)}`;
+      const pr = $('#ticketPriority'); const p = selectedTicket.priority||'MEDIUM'; pr.textContent = p==='HIGH'?'Yüksek':p==='LOW'?'Düşük':'Orta'; pr.className = `priority-chip ${p==='HIGH'?'p-high':p==='LOW'?'p-low':'p-medium'}`;
       renderMessages();
     }
 
-    // Mesajları render et
-    function renderMessages() {
-      const messageList = $('#messageList');
-      
-      if (!messageList) {
-        console.error('Message list element bulunamadı');
-        return;
-      }
-      
-      if (messages.length === 0) {
-        messageList.innerHTML = '<div class="text-center text-muted"><small>Henüz mesaj yok</small></div>';
-        return;
-      }
-      
-      messageList.innerHTML = messages.map(msg => {
-        const isOwnMessage = msg.sender_id === me.id;
-        const messageColor = getMessageColor(msg.sender_id);
-        // Mesaj renklerini renkli yap
-        const messageClass = `bg-${messageColor} text-white`;
-        const alignClass = isOwnMessage ? 'justify-content-end' : 'justify-content-start';
-        const statusText = isOwnMessage ? 'Gönderildi' : 'Gelen';
-        
+    function renderMessages(){
+      const wrap = $('#messageList');
+      if (!messages.length){ wrap.innerHTML = '<div class="text-center text-muted"><small>Henüz mesaj yok</small></div>'; return; }
+      wrap.innerHTML = messages.map(m=>{
+        const mine = m.sender_id === me.id;
         return `
-          <div class="d-flex ${alignClass} mb-3">
-            <div class="message-bubble ${messageClass} p-3 rounded" style="max-width: 70%;">
-              <div class="message-header mb-2">
-                <small class="fw-bold">${escapeHtml(msg.sender_email || msg.sender_name || 'Bilinmeyen')}</small>
-                <span class="badge ${isOwnMessage ? 'bg-light text-dark' : 'bg-secondary'} ms-2">${statusText}</span>
-              </div>
-              <div class="message-content mb-2">${escapeHtml(msg.content)}</div>
-              <div class="message-time">
-                <small class="text-white-50">
-                  ${new Date(msg.created_at).toLocaleString('tr-TR')}
-                </small>
-              </div>
+          <div class="d-flex ${mine?'justify-content-end':'justify-content-start'} mb-3">
+            <div class="bubble ${mine?'bubble-me':'bubble-other'}">
+              <div class="small fw-semibold mb-1">${escapeHtml(m.sender_email || m.sender_name || 'Bilinmeyen')}</div>
+              <div class="mb-1">${escapeHtml(m.content)}</div>
+              <small class="${mine?'text-white-50':'text-muted'}">${new Date(m.created_at).toLocaleString('tr-TR')}</small>
             </div>
-          </div>
-        `;
+          </div>`;
       }).join('');
     }
 
-    // Kullanıcı ID'sine göre renk seçimi
-    function getMessageColor(userId) {
-      const colors = [
-        'primary',    // Mavi
-        'success',    // Yeşil
-        'info',       // Açık mavi
-        'warning',    // Sarı
-        'danger',     // Kırmızı
-        'secondary',  // Gri
-        'dark',       // Koyu gri
-        'purple',     // Mor (custom)
-        'teal',       // Teal (custom)
-        'orange'      // Turuncu (custom)
-      ];
-      
-      const colorIndex = userId % colors.length;
-      return colors[colorIndex];
-    }
+    $('#sendMessage').addEventListener('click', sendMessage);
+    $('#messageInput').addEventListener('keypress', (e)=>{ if(e.key==='Enter') sendMessage(); });
 
-    // Mesaj gönderme
-    $('#sendMessage').addEventListener('click', async () => {
+    async function sendMessage(){
       if (!selectedTicket) return;
-      
-      const messageInput = $('#messageInput');
-      const content = messageInput.value.trim();
-      
+      const input = $('#messageInput');
+      const content = input.value.trim();
       if (!content) return;
-      
-      try {
-        const res = await fetch(`/tickets/${selectedTicket.id}/messages`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          credentials: 'include',
-          body: JSON.stringify({ content })
-        });
-        
-        if (!res.ok) {
-          const err = await res.json().catch(()=>({}));
-          throw new Error(err.error || `HTTP ${res.status}`);
-        }
-        
-        const newMessage = await res.json();
-        messages.push(newMessage);
-        
-        // UI'ı güncelle
-        renderMessages();
-        messageInput.value = '';
-        
-        // Mesaj listesini scroll et
-        const messageList = $('#messageList');
-        messageList.scrollTop = messageList.scrollHeight;
-        
-      } catch (err) {
-        console.error('Mesaj gönderme hatası:', err);
-        alert('Mesaj gönderilemedi: ' + err.message);
-      }
-    });
-
-    // Enter tuşu ile mesaj gönderme
-    $('#messageInput').addEventListener('keypress', (e) => {
-      if (e.key === 'Enter') {
-        $('#sendMessage').click();
-      }
-    });
-
-    // Chat panelini kapat
-    $('#closeChat').addEventListener('click', () => {
-      $('#chatPanel').style.display = 'none';
-      selectedTicket = null;
-      messages = [];
-    });
-
-    // Düzenleme modalını aç
-    async function openEditModal(ticketId) {
-      try {
-        // Talep bilgilerini getir
-        const res = await fetch(`/tickets/${ticketId}`, { credentials: 'include' });
-        if (!res.ok) throw new Error('Talep bilgileri alınamadı');
-        
-        const ticket = await res.json();
-        
-        // Modal alanlarını doldur
-        $('#editTicketId').value = ticket.id;
-        $('#editSubject').value = ticket.subject || '';
-        $('#editDescription').value = ticket.description || '';
-        $('#editPriority').value = ticket.priority || 'MEDIUM';
-        
-        // Modal'ı göster
-        bootstrap.Modal.getOrCreateInstance('#editModal').show();
-        
-      } catch (err) {
-        alert('Talep bilgileri alınamadı: ' + err.message);
-      }
+      try{
+        const res = await fetch(`/tickets/${selectedTicket.id}/messages`, { method:'POST', headers:{'Content-Type':'application/json'}, credentials:'include', body:JSON.stringify({ content }) });
+        if (!res.ok){ const err = await res.json().catch(()=>({})); throw new Error(err.error || `HTTP ${res.status}`); }
+        const msg = await res.json();
+        messages.push(msg); renderMessages(); input.value='';
+        const ml = $('#messageList'); ml.scrollTop = ml.scrollHeight;
+      }catch(err){ alert('Mesaj gönderilemedi: '+err.message); }
     }
 
-    // Düzenleme kaydetme
-    $('#btnSaveEdit').addEventListener('click', async () => {
-      const ticketId = $('#editTicketId').value;
-      const subject = $('#editSubject').value.trim();
-      const description = $('#editDescription').value.trim();
-      const priority = $('#editPriority').value;
-      
-      if (!subject) {
-        alert('Konu alanı zorunludur');
-        return;
-      }
-      
-      try {
-        const res = await fetch(`/tickets/${ticketId}`, {
-          method: 'PUT',
-          headers: { 'Content-Type': 'application/json' },
-          credentials: 'include',
-          body: JSON.stringify({ subject, description, priority })
-        });
-        
-        if (!res.ok) {
-          const err = await res.json().catch(()=>({}));
-          throw new Error(err.error || `HTTP ${res.status}`);
-        }
-        
-        // Modal'ı kapat
-        bootstrap.Modal.getInstance('#editModal')?.hide();
-        
-        // Listeyi yenile
-        await loadInbox();
-        
-        alert('Talep başarıyla güncellendi');
-        
-      } catch (err) {
-        alert('Talep güncellenemedi: ' + err.message);
-      }
-    });
+    $('#closeChat').addEventListener('click', ()=>{ $('#chatPanel').style.display='none'; selectedTicket=null; messages=[]; });
 
-    // Durum badge'leri için renk sınıfları
-    function badgeClass(s) {
-      switch (s) {
-        case 'NEW': return 'bg-primary';
-        case 'OPEN': return 'bg-warning';
-        case 'ASSIGNED': return 'bg-info';
-        case 'RESOLVED': return 'bg-success';
-        case 'CANCELLED': return 'bg-danger';
-        case 'CLOSED': return 'bg-secondary';
-        default: return 'bg-dark';
-      }
-    }
-
-    // Durum metinlerini Türkçe'ye çevir
-    function getStatusText(status) {
-      switch (status) {
-        case 'NEW': return 'Yeni';
-        case 'OPEN': return 'Açık';
-        case 'ASSIGNED': return 'Atandı';
-        case 'RESOLVED': return 'Çözüldü';
-        case 'CANCELLED': return 'İptal';
-        case 'CLOSED': return 'Kapalı';
-        default: return status;
-      }
-    }
-
-    // Öncelik metinlerini Türkçe'ye çevir
-    function getPriorityText(priority) {
-      switch (priority) {
-        case 'LOW': return 'Düşük';
-        case 'MEDIUM': return 'Orta';
-        case 'HIGH': return 'Yüksek';
-        default: return priority;
-      }
-    }
   </script>
 </body>
 </html>

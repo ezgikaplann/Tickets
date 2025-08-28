@@ -368,33 +368,136 @@
       }catch(e){ console.error('Kategoriler yüklenemedi:', e); }
     }
 
-    async function loadSubcategories(categoryId){
-      try{
-        if (!categoryId){ $('#subcategorySelect').innerHTML = '<option value="">Tüm Alt Kategoriler</option>'; $('#subsubcategorySelect').innerHTML = '<option value="">Tüm Alt-Alt Kategoriler</option>'; return; }
-        const res = await fetch(`/tickets/subcategories?category_id=${categoryId}`, { credentials: 'include' });
-        if (res.ok){
-          subcategories = await res.json();
-          $('#subcategorySelect').innerHTML = '<option value="">Tüm Alt Kategoriler</option>' + subcategories.map(s=>`<option value="${s.id}">${escapeHtml(s.name)}</option>`).join('');
+    // Alt kategorileri yükle
+    async function loadSubcategories(categoryId) {
+      try {
+        if (!categoryId) {
+          $('#subcategorySelect').innerHTML = '<option value="">Tüm Alt Kategoriler</option>';
+          $('#subsubcategorySelect').innerHTML = '<option value="">Tüm Alt-Alt Kategoriler</option>';
+          return;
         }
+        
+        console.log('Alt kategoriler yükleniyor, category_id:', categoryId);
+        
+        const res = await fetch(`/tickets/subcategories?category_id=${categoryId}`, { credentials: 'include' });
+        if (res.ok) {
+          subcategories = await res.json();
+          console.log('Alt kategoriler yüklendi:', subcategories);
+          
+          $('#subcategorySelect').innerHTML = '<option value="">Tüm Alt Kategoriler</option>' + 
+            subcategories.map(s => `<option value="${s.id}">${escapeHtml(s.name)}</option>`).join('');
+        } else {
+          console.error('Alt kategoriler yüklenemedi:', res.status);
+          $('#subcategorySelect').innerHTML = '<option value="">Alt kategoriler yüklenemedi</option>';
+        }
+        
+        // Alt kategori değiştiğinde alt-alt kategorileri temizle
         $('#subsubcategorySelect').innerHTML = '<option value="">Tüm Alt-Alt Kategoriler</option>';
-      }catch(e){ console.error('Alt kategoriler yüklenemedi:', e); }
+      } catch (err) {
+        console.error('Alt kategoriler yüklenemedi:', err);
+        $('#subcategorySelect').innerHTML = '<option value="">Hata oluştu</option>';
+      }
     }
 
-    async function loadSubsubcategories(subcategoryId){
-      try{
-        if (!subcategoryId){ $('#subsubcategorySelect').innerHTML = '<option value="">Tüm Alt-Alt Kategoriler</option>'; return; }
-        const res = await fetch(`/tickets/subsubcategories?subcategory_id=${subcategoryId}`, { credentials: 'include' });
-        if (res.ok){
-          subsubcategories = await res.json();
-          $('#subsubcategorySelect').innerHTML = '<option value="">Tüm Alt-Alt Kategoriler</option>' + subsubcategories.map(s=>`<option value="${s.id}">${escapeHtml(s.name)}</option>`).join('');
+    // Alt-alt kategorileri yükle
+    async function loadSubsubcategories(subcategoryId) {
+      try {
+        if (!subcategoryId) {
+          console.log('subcategoryId boş, alt-alt kategoriler temizleniyor');
+          $('#subsubcategorySelect').innerHTML = '<option value="">Tüm Alt-Alt Kategoriler</option>';
+          return;
         }
-      }catch(e){ console.error('Alt-alt kategoriler yüklenemedi:', e); }
+        
+        console.log('=== ALT-ALT KATEGORİLER YÜKLENİYOR ===');
+        console.log('subcategoryId:', subcategoryId);
+        console.log('subcategoryId type:', typeof subcategoryId);
+        
+        const url = `/tickets/subsubcategories?subcategory_id=${subcategoryId}`;
+        console.log('API URL:', url);
+        
+        const res = await fetch(url, { credentials: 'include' });
+        console.log('API Response status:', res.status);
+        console.log('API Response ok:', res.ok);
+        
+        if (res.ok) {
+          const data = await res.json();
+          console.log('API Response data:', data);
+          console.log('Data type:', typeof data);
+          console.log('Data length:', Array.isArray(data) ? data.length : 'Not an array');
+          
+          subsubcategories = data;
+          
+          if (Array.isArray(data) && data.length > 0) {
+            const options = '<option value="">Tüm Alt-Alt Kategoriler</option>' + 
+              data.map(s => `<option value="${s.id}">${escapeHtml(s.name)}</option>`).join('');
+            
+            console.log('Generated options HTML:', options);
+            $('#subsubcategorySelect').innerHTML = options;
+            
+            console.log('Alt-alt kategoriler başarıyla yüklendi:', data.length, 'adet');
+          } else {
+            console.log('Alt-alt kategori verisi boş veya array değil');
+            $('#subsubcategorySelect').innerHTML = '<option value="">Alt-alt kategori bulunamadı</option>';
+          }
+        } else {
+          const errorText = await res.text();
+          console.error('API Error Response:', errorText);
+          
+          try {
+            const errorJson = JSON.parse(errorText);
+            console.error('Parsed Error:', errorJson);
+          } catch (parseError) {
+            console.error('Error response parse edilemedi:', parseError);
+          }
+          
+          $('#subsubcategorySelect').innerHTML = '<option value="">Alt-alt kategoriler yüklenemedi</option>';
+        }
+      } catch (err) {
+        console.error('=== ALT-ALT KATEGORİLER YÜKLEME HATASI ===');
+        console.error('Error details:', err);
+        console.error('Error message:', err.message);
+        console.error('Error stack:', err.stack);
+        
+        $('#subsubcategorySelect').innerHTML = '<option value="">Hata oluştu</option>';
+      }
     }
 
     // Listeners for filters
-    $('#categorySelect').addEventListener('change', async (e)=>{ await loadSubcategories(e.target.value); await loadLists(); });
-    $('#subcategorySelect').addEventListener('change', async (e)=>{ await loadSubsubcategories(e.target.value); await loadLists(); });
-    $('#subsubcategorySelect').addEventListener('change', async ()=>{ await loadLists(); });
+    $('#categorySelect').addEventListener('change', async (e)=>{
+      const categoryId = e.target.value;
+      console.log('Ana kategori değişti:', categoryId);
+      
+      if (categoryId) {
+        console.log('Alt kategoriler yükleniyor...');
+        await loadSubcategories(categoryId);
+      } else {
+        console.log('Ana kategori seçimi temizlendi, alt kategoriler temizleniyor...');
+        $('#subcategorySelect').innerHTML = '<option value="">Tüm Alt Kategoriler</option>';
+        $('#subsubcategorySelect').innerHTML = '<option value="">Tüm Alt-Alt Kategoriler</option>';
+      }
+      
+      await loadLists(); // Arama ve filtreleme yapılınca listeyi yeniden yükle
+    });
+
+    $('#subcategorySelect').addEventListener('change', async (e) => {
+      const subcategoryId = e.target.value;
+      console.log('Alt kategori değişti:', subcategoryId);
+      
+      if (subcategoryId) {
+        console.log('Alt-alt kategoriler yükleniyor...');
+        await loadSubsubcategories(subcategoryId);
+      } else {
+        console.log('Alt kategori seçimi temizlendi, alt-alt kategoriler temizleniyor...');
+        $('#subsubcategorySelect').innerHTML = '<option value="">Tüm Alt-Alt Kategoriler</option>';
+      }
+      
+      await loadLists(); // Arama ve filtreleme yapılınca listeyi yeniden yükle
+    });
+
+    $('#subsubcategorySelect').addEventListener('change', async () => {
+      console.log('Alt-alt kategori değişti, liste yenileniyor...');
+      await loadLists(); // Arama ve filtreleme yapılınca listeyi yeniden yükle
+    });
   </script>
 </body>
 </html>

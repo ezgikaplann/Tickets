@@ -4,203 +4,126 @@
   <meta charset="utf-8" />
   <title>HelpNest · Yeni Talep</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <!-- Bootswatch (Lux) + Bootstrap Icons -->
   <link href="https://cdn.jsdelivr.net/npm/bootswatch@5.3.2/dist/lux/bootstrap.min.css" rel="stylesheet" />
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet" />
   <style>
-    :root {
-      --space-cadet: #2B2D42;
-      --cool-gray: #8D99AE;
-      --anti-flash-white: #EDF2F4;
+    :root{
+      --brand-1:#7A3DFC; /* violet */
+      --brand-2:#00E5FF; /* cyan */
+      --brand-3:#E429E8; /* magenta */
+      --ink:#0f172a;     /* deep text */
+      --muted:#64748b;   /* slate */
+      --bg:#f7f8fc;      /* page bg */
+      --card:#ffffff;    /* card bg */
     }
-    
-    body {
-      background-color: var(--cool-gray) !important;
-    }
-    
-    .navbar {
-      background-color: var(--space-cadet) !important;
-      border-bottom: 2px solid var(--cool-gray) !important;
-    }
-    
-    .navbar-brand {
-      color: var(--anti-flash-white) !important;
-      font-weight: 600;
-    }
-    
-    .btn-outline-light {
-      border-color: var(--anti-flash-white) !important;
-      color: var(--anti-flash-white) !important;
-    }
-    
-    .btn-outline-light:hover {
-      background-color: var(--anti-flash-white) !important;
-      color: var(--space-cadet) !important;
-    }
-    
-    .card {
-      border: 1px solid var(--cool-gray) !important;
-      box-shadow: 0 2px 8px rgba(43, 45, 66, 0.1) !important;
-      background-color: var(--anti-flash-white) !important;
-    }
-    
-    .select-card {
-      border: 2px solid var(--cool-gray) !important;
-      border-radius: 15px !important;
-      padding: 14px !important;
-      cursor: pointer !important;
-      background: white !important;
-      transition: all 0.3s ease !important;
-    }
-    
-    .select-card:hover {
-      border-color: var(--space-cadet) !important;
-      transform: translateY(-2px) !important;
-      box-shadow: 0 4px 12px rgba(43, 45, 66, 0.15) !important;
-    }
-    
-    .select-card.selected {
-      border-color: var(--space-cadet) !important;
-      box-shadow: 0 0 0 0.2rem rgba(43, 45, 66, 0.25) !important;
-      background-color: var(--anti-flash-white) !important;
-    }
-    
-    .file-chip {
-      display: inline-flex !important;
-      gap: 8px !important;
-      align-items: center !important;
-      background: var(--cool-gray) !important;
-      border-radius: 999px !important;
-      padding: 6px 10px !important;
-      color: white !important;
-    }
-    
-    .file-chip button {
-      border: 0 !important;
-      background: transparent !important;
-      color: white !important;
-    }
-    
-    .form-control {
-      border: 2px solid var(--cool-gray) !important;
-      background-color: white !important;
-      border-radius: 10px !important;
-    }
-    
-    .form-control:focus {
-      border-color: var(--space-cadet) !important;
-      box-shadow: 0 0 0 0.2rem rgba(43, 45, 66, 0.25) !important;
-    }
-    
-    .btn-primary {
-      background-color: var(--space-cadet) !important;
-      border-color: var(--space-cadet) !important;
-      color: var(--anti-flash-white) !important;
-      border-radius: 10px !important;
-    }
-    
-    .btn-primary:hover {
-      background-color: var(--cool-gray) !important;
-      border-color: var(--cool-gray) !important;
-    }
-    
-    .btn-outline-secondary {
-      border-color: var(--cool-gray) !important;
-      color: var(--space-cadet) !important;
-      border-radius: 10px !important;
-    }
-    
-    .btn-outline-secondary:hover {
-      background-color: var(--cool-gray) !important;
-      border-color: var(--cool-gray) !important;
-      color: var(--anti-flash-white) !important;
-    }
-    
-    .form-label {
-      color: var(--space-cadet) !important;
-      font-weight: 500;
-    }
-    
-    .text-muted {
-      color: var(--cool-gray) !important;
-    }
-    
-    .text-danger {
-      color: #dc3545 !important;
-    }
-    
-    h5 {
-      color: var(--space-cadet) !important;
-    }
-    
-    .alert {
-      border-radius: 10px !important;
-      border: none !important;
-    }
+    html,body{height:100%}
+    body{background: radial-gradient(1200px 600px at 10% -10%, rgba(122,61,252,.08), transparent 60%),
+                     radial-gradient(900px 500px at 90% 10%, rgba(0,229,255,.10), transparent 60%),
+                     radial-gradient(800px 400px at 40% 110%, rgba(228,41,232,.08), transparent 60%),
+                     var(--bg)!important;}
+
+    /* NAVBAR */
+    .navbar{backdrop-filter:saturate(150%) blur(8px); background:rgba(255,255,255,.7)!important; border-bottom:1px solid #e9edf5!important}
+    .navbar-brand{font-weight:700; letter-spacing:.2px; color: var(--ink)!important}
+    .btn-outline-light{border-color:#cbd5e1!important; color:#334155!important}
+    .btn-outline-light:hover{background:#e2e8f0!important; color:#0f172a!important}
+
+    /* HEADER RIBBON */
+    .ribbon{border-radius:20px; border:1px solid rgba(0,0,0,.05); background:linear-gradient(135deg, rgba(122,61,252,.12), rgba(0,229,255,.12));}
+
+    /* FORM CARD */
+    .form-card{background:var(--card); border:1px solid #e9edf5; box-shadow:0 10px 30px rgba(2,6,23,.05); border-radius:18px}
+    .form-label{color:var(--ink); font-weight:600}
+    .text-muted{color:var(--muted)!important}
+
+    /* CONTROLS */
+    .form-control{border:1px solid #e2e8f0; background:#fff; border-radius:12px}
+    .form-control:focus{border-color:#c7d2fe; box-shadow:0 0 0 .25rem rgba(122,61,252,.15)}
+    .btn-primary{background:linear-gradient(135deg, var(--brand-1), var(--brand-2)); border:0; box-shadow:0 8px 20px rgba(122,61,252,.25); border-radius:12px}
+    .btn-primary:hover{filter:brightness(.95)}
+    .btn-outline-secondary{border-color:#e2e8f0; color:#0f172a; border-radius:12px; background:#fff}
+    .btn-outline-secondary:hover{background:#f1f5f9; color:#0f172a}
+
+    /* SELECT CARDS (kategori seçim ızgarası) */
+    .select-card{border:1px solid #e9edf5; border-radius:14px; padding:12px; cursor:pointer; background:#fff; transition:transform .18s ease, box-shadow .18s ease, border-color .18s ease}
+    .select-card:hover{transform:translateY(-2px); box-shadow:0 12px 28px rgba(2,6,23,.08)}
+    .select-card.selected{border-color:#c7d2fe; box-shadow:0 0 0 .2rem rgba(122,61,252,.15)}
+
+    /* FILE CHIP */
+    .file-chip{display:inline-flex; gap:8px; align-items:center; background:#eef2ff; color:#4338ca; border:1px solid #c7d2fe; border-radius:999px; padding:6px 10px}
+    .file-chip button{border:0; background:transparent; color:#4338ca}
+
+    /* ALERT */
+    .alert{border:none; border-radius:12px}
   </style>
 </head>
 <body>
-  <nav class="navbar bg-dark navbar-dark">
-    <div class="container-fluid">
-      <a class="navbar-brand" href="/user.html">← HelpNest · Yeni Talep</a>
+  <nav class="navbar sticky-top">
+    <div class="container-xxl d-flex align-items-center justify-content-between">
+      <a class="navbar-brand d-inline-flex align-items-center gap-2" href="/user.html"><i class="bi bi-arrow-left"></i> HelpNest · Yeni Talep</a>
       <div class="d-flex align-items-center gap-2">
-        <span class="small opacity-75 text-white" id="userInfo"></span>
+        <span class="small text-muted" id="userInfo"></span>
         <a class="btn btn-outline-light btn-sm" href="/user.html">Panel</a>
       </div>
     </div>
   </nav>
 
-  <main class="container py-4">
-    <div class="card shadow-sm">
-      <div class="card-body">
-        <h5 class="card-title mb-3">Yeni Talep</h5>
-        <div id="alert" class="alert d-none" role="alert"></div>
+  <main class="container-xxl py-4">
+    <!-- Header ribbon -->
+    <div class="ribbon p-3 p-md-4 mb-4">
+      <h2 class="h5 mb-1">Yeni Talep Oluştur</h2>
+      <div class="small text-muted">Konu ve açıklamayı yazın, gerekirse kategori ve görsel ekleyin.</div>
+    </div>
 
-        <form id="form" novalidate>
-          <div class="mb-3">
-            <label class="form-label">Konu <span class="text-danger">*</span></label>
-            <input id="subject" class="form-control" required placeholder="Örn. Office uygulamalarımda sorun yaşıyorum" />
-          </div>
+    <div class="form-card p-3 p-md-4">
+      <div id="alert" class="alert d-none" role="alert"></div>
 
-          <div class="mb-3">
-            <label class="form-label">Açıklama</label>
-            <textarea id="description" class="form-control" rows="6"
-              placeholder="Uygulamaya girişte yetki hatası alıyorum..."></textarea>
-          </div>
+      <form id="form" novalidate>
+        <div class="mb-3">
+          <label class="form-label">Konu <span class="text-danger">*</span></label>
+          <input id="subject" class="form-control" required placeholder="Örn. Office uygulamalarımda sorun yaşıyorum" />
+        </div>
 
-          <!-- Görsel -->
-          <div class="mb-3">
-            <label class="form-label">Görsel Ekle (JPEG, opsiyonel)</label>
-            <input id="file" type="file" accept="image/jpeg" class="form-control" />
-            <div id="fileInfo" class="mt-2"></div>
-          </div>
+        <div class="mb-3">
+          <label class="form-label">Açıklama</label>
+          <textarea id="description" class="form-control" rows="6" placeholder="Uygulamaya girişte yetki hatası alıyorum..."></textarea>
+        </div>
 
-          <!-- Kategori / Alt Kategori / Sorun Türü -->
-          <div class="mb-2"><strong>Kategori Seçimi:</strong></div>
-          <div id="catsRow" class="row g-3">
-            <div class="col-md-4">
-              <div class="select-card" id="catsCol">
-                <div class="small text-muted">Yükleniyor…</div>
-              </div>
-            </div>
-            <div class="col-md-4">
-              <div class="select-card" id="subsCol">
-                <div class="fw-semibold">Alt kategori</div>
-                <div class="small text-muted">Önce kategori seçin</div>
-              </div>
-            </div>
-            <div class="col-md-4">
-              <div class="select-card" id="subsubsCol">
-                <div class="fw-semibold">Sorun Türü</div>
-                <div class="small text-muted">Önce alt kategori seçin</div>
-              </div>
+        <!-- Görsel -->
+        <div class="mb-3">
+          <label class="form-label">Görsel Ekle (JPEG, opsiyonel)</label>
+          <input id="file" type="file" accept="image/jpeg" class="form-control" />
+          <div id="fileInfo" class="mt-2"></div>
+        </div>
+
+        <!-- Kategori / Alt Kategori / Sorun Türü -->
+        <div class="mb-2 fw-semibold">Kategori Seçimi</div>
+        <div id="catsRow" class="row g-3">
+          <div class="col-md-4">
+            <div class="select-card" id="catsCol">
+              <div class="small text-muted">Yükleniyor…</div>
             </div>
           </div>
-
-          <div class="mt-3">
-            <button id="btn" class="btn btn-primary">Gönder</button>
-            <a href="/user.html" class="btn btn-outline-secondary">İptal</a>
+          <div class="col-md-4">
+            <div class="select-card" id="subsCol">
+              <div class="fw-semibold">Alt kategori</div>
+              <div class="small text-muted">Önce kategori seçin</div>
+            </div>
           </div>
-        </form>
-      </div>
+          <div class="col-md-4">
+            <div class="select-card" id="subsubsCol">
+              <div class="fw-semibold">Sorun Türü</div>
+              <div class="small text-muted">Önce alt kategori seçin</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="mt-3 d-flex gap-2">
+          <button id="btn" class="btn btn-primary"><i class="bi bi-send me-1"></i>Gönder</button>
+          <a href="/user.html" class="btn btn-outline-secondary">İptal</a>
+        </div>
+      </form>
     </div>
   </main>
 
@@ -225,18 +148,13 @@
     // Dosya seçimi
     $('#file').addEventListener('change', e=>{
       const f = e.target.files[0];
-      chosenFile = null;
-      $('#fileInfo').innerHTML = '';
+      chosenFile = null; $('#fileInfo').innerHTML = '';
       if (!f) return;
-      if (f.type !== 'image/jpeg') {
-        showAlert('warning','Sadece JPEG dosyalar kabul edilir.');
-        e.target.value='';
-        return;
-      }
+      if (f.type !== 'image/jpeg') { showAlert('warning','Sadece JPEG dosyalar kabul edilir.'); e.target.value=''; return; }
       chosenFile = f;
       const chip = document.createElement('div');
       chip.className='file-chip mt-1';
-      chip.innerHTML = `<span>📎 ${f.name}</span><button type="button" title="Kaldır">🗑️</button>`;
+      chip.innerHTML = `<i class="bi bi-paperclip"></i><span>${escapeHtml(f.name)}</span><button type="button" title="Kaldır"><i class="bi bi-trash3"></i></button>`;
       chip.querySelector('button').onclick = ()=>{ chosenFile=null; $('#file').value=''; chip.remove(); };
       $('#fileInfo').appendChild(chip);
     });
@@ -263,8 +181,7 @@
           col.querySelectorAll('[data-type="cat"]').forEach(x=>x.classList.remove('selected'));
           el.classList.add('selected');
           selectedCat = { id:Number(el.dataset.id), name:el.dataset.name };
-          selectedSub = null;
-          selectedSubSub = null;
+          selectedSub = null; selectedSubSub = null;
           await loadSubcategories(selectedCat.id);
           resetSubSubCol();
         });
@@ -290,8 +207,7 @@
           holder.querySelectorAll('[data-type="sub"]').forEach(x=>x.classList.remove('selected'));
           el.classList.add('selected');
           selectedSub = { id:Number(el.dataset.id), name:el.dataset.name };
-          selectedSubSub = null;
-          await loadSubSubcategories(selectedSub.id);
+          selectedSubSub = null; await loadSubSubcategories(selectedSub.id);
         });
       });
     }
@@ -332,31 +248,19 @@
       const subject = $('#subject').value.trim();
       if (!subject) return showAlert('danger','Konu zorunludur.');
 
-      const payload = {
-        subject,
-        description: $('#description').value
-      };
+      const payload = { subject, description: $('#description').value };
       if (selectedCat?.id)    payload.category_id = selectedCat.id;
       if (selectedSub?.id)    payload.subcategory_id = selectedSub.id;
-      if (selectedSubSub?.id) payload.sub_subcategory_id = selectedSubSub.id; // ⬅️ 3. seviye
+      if (selectedSubSub?.id) payload.sub_subcategory_id = selectedSubSub.id; // 3. seviye
 
       // 1) ticket
-      const r = await fetch('/tickets', {
-        method:'POST',
-        headers:{'Content-Type':'application/json'},
-        credentials:'include',
-        body: JSON.stringify(payload)
-      });
-      if (!r.ok){
-        const t = await r.text();
-        return showAlert('danger','Talep oluşturulamadı: '+t);
-      }
+      const r = await fetch('/tickets', { method:'POST', headers:{'Content-Type':'application/json'}, credentials:'include', body: JSON.stringify(payload) });
+      if (!r.ok){ const t = await r.text(); return showAlert('danger','Talep oluşturulamadı: '+t); }
       const { id } = await r.json();
 
       // 2) jpeg varsa
       if (chosenFile){
-        const fd = new FormData();
-        fd.append('file', chosenFile, chosenFile.name);
+        const fd = new FormData(); fd.append('file', chosenFile, chosenFile.name);
         const ur = await fetch(`/files/ticket/${id}`, { method:'POST', credentials:'include', body:fd });
         if (!ur.ok) showAlert('warning','Talep oluşturuldu, ancak görsel yüklenemedi.');
       }
@@ -365,13 +269,8 @@
       setTimeout(()=> window.location.href='/user.html', 700);
     });
 
-    function showAlert(type, msg){
-      const a = $('#alert');
-      a.className = 'alert alert-'+type;
-      a.textContent = msg;
-      a.classList.remove('d-none');
-    }
-    function escapeHtml(s){return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
+    function showAlert(type, msg){ const a = $('#alert'); a.className = 'alert alert-'+type; a.textContent = msg; a.classList.remove('d-none'); }
+    function escapeHtml(s){return String(s||'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;','\'':'&#39;'}[c]))}
   </script>
 </body>
 </html>
