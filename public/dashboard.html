@@ -31,7 +31,7 @@
     .ribbon{border-radius:20px; border:1px solid rgba(0,0,0,.05); background:linear-gradient(135deg, rgba(122,61,252,.12), rgba(0,229,255,.12));}
 
     /* CARDS */
-    .ticket-card{background:var(--card); border:1px solid #e9edf5; border-left:6px solid transparent; box-shadow:0 10px 30px rgba(2,6,23,.05); transition:transform .18s ease, box-shadow .18s ease}
+    .ticket-card{background:var(--card); border:1px solid #e9edf5; border-left:6px solid transparent; box-shadow:0 10px 30px rgba(2,6,23,.05); transition:transform .18s ease, box-shadow .18s ease; cursor: pointer;}
     .ticket-card:hover{transform:translateY(-3px); box-shadow:0 18px 40px rgba(2,6,23,.08)}
     .ticket-card .subject{color:var(--ink); font-weight:600}
     .ticket-card .excerpt{color:#475569}
@@ -62,10 +62,9 @@
     .bubble-other{background:#f8fafc; color:#0f172a; border:1px solid #e2e8f0}
     .bubble small{opacity:.8}
 
-    /* SKELETON */
-    .skeleton{position:relative; overflow:hidden; background:#eef2f7; border-radius:12px}
-    .skeleton::after{content:""; position:absolute; inset:0; transform:translateX(-100%); background:linear-gradient(90deg, transparent, rgba(255,255,255,.5), transparent); animation:shimmer 1.2s infinite}
-    @keyframes shimmer{100%{transform:translateX(100%)}}
+    /* BUTTONS */
+    .btn-primary{background:linear-gradient(135deg, var(--brand-1), var(--brand-2)); border:none; box-shadow:0 4px 12px rgba(122,61,252,.3); transition:all .2s ease}
+    .btn-primary:hover{transform:translateY(-1px); box-shadow:0 6px 16px rgba(122,61,252,.4)}
 
     /* Responsive tasarım için */
     @media (max-width: 768px) {
@@ -128,49 +127,6 @@
       </div>
     </div>
 
-    <!-- Mesajlaşma paneli - sadece talep seçildiğinde görünür -->
-    <div id="chatPanel" class="card mb-4" style="display: none;">
-      <div class="card-header d-flex justify-content-between align-items-center">
-        <h6 class="mb-0" id="chatTitle">Talep Detayı</h6>
-        <button type="button" class="btn-close" id="closeChat"></button>
-      </div>
-      
-      <div class="card-body p-0">
-        <!-- Talep bilgileri -->
-        <div class="p-4 border-bottom">
-          <h6 id="ticketSubject" class="subject">Konu</h6>
-          <p class="small text-muted mb-3" id="ticketDescription">Açıklama</p>
-          <div class="row g-3">
-            <div class="col-6">
-              <small class="text-muted d-block mb-1">Durum:</small>
-              <span id="ticketStatus" class="status-pill s-new">Durum</span>
-            </div>
-            <div class="col-6">
-              <small class="text-muted d-block mb-1">Öncelik:</small>
-              <span id="ticketPriority" class="priority-chip p-medium">Öncelik</span>
-            </div>
-          </div>
-        </div>
-        
-        <!-- Mesaj listesi -->
-        <div id="messageList" class="message-list p-4">
-          <div class="text-center text-muted">
-            <small>Henüz mesaj yok</small>
-          </div>
-        </div>
-        
-        <!-- Mesaj gönderme -->
-        <div class="p-4 border-top">
-          <div class="input-group">
-            <input type="text" class="form-control" id="messageInput" placeholder="Mesaj yazın..." />
-            <button class="btn btn-primary" type="button" id="sendMessage">
-              <i class="bi bi-send me-1"></i> Gönder
-            </button>
-          </div>
-        </div>
-      </div>
-    </div>
-
     <!-- Talep listesi -->
     <div id="list" class="row g-4"></div>
     <div id="empty" class="text-center text-muted py-5 d-none">
@@ -178,6 +134,38 @@
       <div>Henüz talep bulunmuyor.</div>
     </div>
   </main>
+
+  <!-- Chat Offcanvas -->
+  <div class="offcanvas offcanvas-end" tabindex="-1" id="chatOffcanvas" aria-labelledby="chatLabel">
+    <div class="offcanvas-header border-bottom">
+      <div>
+        <h5 id="chatLabel" class="mb-0">Talep Detayı</h5>
+        <div class="small text-muted" id="chatMeta"></div>
+      </div>
+      <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Kapat"></button>
+    </div>
+    <div class="offcanvas-body d-flex flex-column p-0">
+      <div class="p-3 border-bottom">
+        <h6 id="ticketSubject" class="mb-1">Konu</h6>
+        <div class="small text-muted mb-2" id="ticketDescription">Açıklama</div>
+        <div class="d-flex flex-wrap gap-2">
+          <span id="ticketStatus" class="status-pill s-new">Yeni</span>
+          <span id="ticketPriority" class="priority-chip p-medium">Orta</span>
+        </div>
+      </div>
+      <div id="messageList" class="message-list p-3">
+        <div class="text-center text-muted"><small>Mesaj yükleniyor…</small></div>
+      </div>
+      <div class="p-3 border-top">
+        <div class="input-group">
+          <input type="text" class="form-control" id="messageInput" placeholder="Mesaj yazın…" />
+          <button class="btn btn-primary" type="button" id="sendMessage">
+            <i class="bi bi-send me-1"></i> Gönder
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
 
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
   <script>
@@ -262,24 +250,26 @@
     function card(t) {
       // Admin rolündeki kullanıcılar için "Bana Ata" butonu - sadece atanmamış taleplerde
       const assignToMeBtn = (me.role === 'admin' && !t.assigned_to && (t.status === 'OPEN' || t.status === 'NEW')) ? 
-        `<button class="btn btn-sm btn-primary btn-assign-to-me" data-id="${t.id}" onclick="event.stopPropagation(); assignToMe(${t.id})">Bana Ata</button>` : '';
+        `<button class="btn btn-primary btn-sm btn-assign-to-me" data-id="${t.id}" onclick="event.stopPropagation(); assignToMe(${t.id})">Bana Ata</button>` : '';
       
       return `
       <div class="col-12 col-lg-6 col-xl-4">
-        <div class="ticket-card" style="cursor: pointer;" onclick="selectTicket(${t.id})">
+        <div class="ticket-card" onclick="selectTicket(${t.id})">
           <div class="card-body p-4">
             <div class="d-flex justify-content-between align-items-start mb-3">
-            <div class="flex-grow-1">
+              <div class="flex-grow-1">
                 <h6 class="subject mb-2">${escapeHtml(t.subject||'(Konu yok)')}</h6>
-                <div class="small text-muted mb-2">#${t.id} • ${new Date(t.created_at).toLocaleString('tr-TR')}</div>
-                <div class="excerpt small">${escapeHtml((t.description||'').slice(0,120))}</div>
+                <div class="small text-muted mb-2">
+                  #${t.id} • ${new Date(t.created_at).toLocaleString('tr-TR')}
+                </div>
+                <div class="excerpt small mb-3">${escapeHtml((t.description||'').slice(0,120))}</div>
+                <div class="mb-2">
+                  <span class="priority-chip ${getPriorityClass(t.priority)}">${getPriorityText(t.priority)}</span>
+                </div>
               </div>
               <div class="text-end ms-3">
-                <div class="mb-2">
+                <div class="mb-3">
                   <span class="status-pill ${getStatusClass(t.status)}">${getStatusText(t.status)}</span>
-            </div>
-              <div class="mb-2">
-                  <span class="priority-chip ${getPriorityClass(t.priority)}">${getPriorityText(t.priority)}</span>
                 </div>
                 ${assignToMeBtn}
               </div>
@@ -334,47 +324,36 @@
       }
     });
 
-    // Talep seçme
+    // =============== CHAT ===============
     async function selectTicket(ticketId) {
       try {
-        console.log('Talep seçiliyor:', ticketId); // Debug log
+        console.log('Talep seçiliyor:', ticketId);
         
         // Talep bilgilerini getir
         const ticketRes = await fetch(`/tickets/${ticketId}`, { credentials: 'include' });
-        console.log('Ticket response status:', ticketRes.status); // Debug log
-        
-        if (!ticketRes.ok) {
-          const errorText = await ticketRes.text();
-          console.log('Ticket error response:', errorText); // Debug log
-          throw new Error('Talep bilgileri alınamadı');
-        }
+        if (!ticketRes.ok) throw new Error('Talep bilgileri alınamadı');
         
         selectedTicket = await ticketRes.json();
-        console.log('Selected ticket:', selectedTicket); // Debug log
+        console.log('Selected ticket:', selectedTicket);
         
         // Mesajları getir
         try {
           const messagesRes = await fetch(`/tickets/${ticketId}/messages`, { credentials: 'include' });
-          console.log('Messages response status:', messagesRes.status); // Debug log
-          
           if (messagesRes.ok) {
             messages = await messagesRes.json();
-            console.log('Messages loaded:', messages); // Debug log
           } else {
-            const errorText = await messagesRes.text();
-            console.log('Messages error response:', errorText); // Debug log
             messages = [];
           }
         } catch (msgErr) {
-          console.log('Messages fetch error:', msgErr); // Debug log
+          console.log('Messages fetch error:', msgErr);
           messages = [];
         }
         
         // UI'ı güncelle
         updateChatUI();
         
-        // Mesajlaşma panelini göster
-        $('#chatPanel').style.display = 'block';
+        // Offcanvas'ı göster
+        bootstrap.Offcanvas.getOrCreateInstance($('#chatOffcanvas')).show();
         
         // Mesaj listesini scroll et
         setTimeout(() => {
@@ -392,15 +371,19 @@
     function updateChatUI() {
       if (!selectedTicket) return;
       
-      $('#chatTitle').textContent = `#${selectedTicket.id} - ${selectedTicket.subject || 'Konu yok'}`;
+      $('#chatLabel').textContent = `#${selectedTicket.id} - ${selectedTicket.subject || 'Konu yok'}`;
+      $('#chatMeta').textContent = new Date(selectedTicket.created_at).toLocaleString('tr-TR');
       $('#ticketSubject').textContent = selectedTicket.subject || 'Konu yok';
       $('#ticketDescription').textContent = selectedTicket.description || 'Açıklama yok';
-      $('#ticketStatus').textContent = selectedTicket.status;
-      $('#ticketPriority').textContent = selectedTicket.priority;
       
       // Status ve priority sınıflarını güncelle
-      $('#ticketStatus').className = `status-pill ${getStatusClass(selectedTicket.status)}`;
-      $('#ticketPriority').className = `priority-chip ${getPriorityClass(selectedTicket.priority)}`;
+      const statusEl = $('#ticketStatus');
+      statusEl.textContent = getStatusText(selectedTicket.status);
+      statusEl.className = `status-pill ${getStatusClass(selectedTicket.status)}`;
+      
+      const priorityEl = $('#ticketPriority');
+      priorityEl.textContent = getPriorityText(selectedTicket.priority);
+      priorityEl.className = `priority-chip ${getPriorityClass(selectedTicket.priority)}`;
       
       // Mesajları göster
       renderMessages();
@@ -418,19 +401,13 @@
       messageList.innerHTML = messages.map(msg => {
         const isOwnMessage = msg.sender_id === me.id;
         const messageClass = isOwnMessage ? 'bubble-me' : 'bubble-other';
-        const statusText = isOwnMessage ? 'Gönderildi' : 'Gelen';
         
         return `
           <div class="d-flex ${isOwnMessage ? 'justify-content-end' : 'justify-content-start'} mb-3">
             <div class="bubble ${messageClass}">
-              <div class="d-flex align-items-center gap-2 mb-2">
-                <small class="fw-bold">${escapeHtml(msg.sender_email || msg.sender_name || 'Bilinmeyen')}</small>
-                <span class="badge ${isOwnMessage ? 'bg-light text-dark' : 'bg-secondary'}">${statusText}</span>
-              </div>
-              <div class="mb-2">${escapeHtml(msg.content)}</div>
-              <small class="opacity-75">
-                  ${new Date(msg.created_at).toLocaleString('tr-TR')}
-                </small>
+              <div class="small fw-semibold mb-1">${escapeHtml(msg.sender_email || msg.sender_name || 'Bilinmeyen')}</div>
+              <div class="mb-1">${escapeHtml(msg.content)}</div>
+              <small class="text-white-50">${new Date(msg.created_at).toLocaleString('tr-TR')}</small>
             </div>
           </div>
         `;
@@ -438,97 +415,49 @@
     }
 
     // Mesaj gönderme
-    $('#sendMessage').addEventListener('click', async () => {
-      if (!selectedTicket) {
-        console.log('Selected ticket yok!');
-        return;
+    $('#sendMessage').addEventListener('click', sendMessage);
+    $('#messageInput').addEventListener('keypress', (e) => {
+      if (e.key === 'Enter') {
+        sendMessage();
       }
+    });
+
+    async function sendMessage() {
+      if (!selectedTicket) return;
       
-      const messageInput = $('#messageInput');
-      console.log('Message input element:', messageInput); // Debug
-      
-      if (!messageInput) {
-        console.error('Message input elementi bulunamadı!');
-        return;
-      }
-      
-      const content = messageInput.value.trim();
-      console.log('Input value:', messageInput.value); // Debug
-      console.log('Trimmed content:', content); // Debug
-      
-      if (!content) {
-        console.log('Content boş!');
-        return;
-      }
-      
-      console.log('=== MESAJ GÖNDERME BAŞLADI ===');
-      console.log('Ticket ID:', selectedTicket.id);
-      console.log('Content:', content);
-      console.log('User ID:', me.id);
-      console.log('User email:', me.email); // Added email to log
+      const input = $('#messageInput');
+      const content = input.value.trim();
+      if (!content) return;
       
       try {
-        const requestBody = { content };
-        console.log('Request body:', requestBody);
-        
         const res = await fetch(`/tickets/${selectedTicket.id}/messages`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           credentials: 'include',
-          body: JSON.stringify(requestBody)
+          body: JSON.stringify({ content })
         });
         
-        console.log('Response status:', res.status);
-        
         if (!res.ok) {
-          const errorText = await res.text();
-          console.log('Error response text:', errorText);
-          
-          let errorData;
-          try {
-            errorData = JSON.parse(errorText);
-          } catch {
-            errorData = { error: 'parse_error', message: errorText };
-          }
-          
-          console.log('Error data:', errorData);
-          throw new Error(errorData.message || `HTTP ${res.status}`);
+          const err = await res.json().catch(()=>({}));
+          throw new Error(err.error || `HTTP ${res.status}`);
         }
         
         const newMessage = await res.json();
-        console.log('Success response:', newMessage);
-        console.log('=== MESAJ GÖNDERME BAŞARILI ===');
-        
         messages.push(newMessage);
         
         // UI'ı güncelle
         renderMessages();
-        messageInput.value = '';
+        input.value = '';
         
         // Mesaj listesini scroll et
         const messageList = $('#messageList');
         messageList.scrollTop = messageList.scrollHeight;
         
       } catch (err) {
-        console.error('=== MESAJ GÖNDERME HATASI ===');
-        console.error('Error details:', err);
+        console.error('Mesaj gönderme hatası:', err);
         alert('Mesaj gönderilemedi: ' + err.message);
       }
-    });
-
-    // Enter tuşu ile mesaj gönderme
-    $('#messageInput').addEventListener('keypress', (e) => {
-      if (e.key === 'Enter') {
-        $('#sendMessage').click();
-      }
-    });
-
-    // Chat panelini kapat
-    $('#closeChat').addEventListener('click', () => {
-      $('#chatPanel').style.display = 'none';
-      selectedTicket = null;
-      messages = [];
-    });
+    }
 
     // Admin için "Bana Ata" fonksiyonu
     async function assignToMe(ticketId) {
@@ -629,61 +558,25 @@
     async function loadSubsubcategories(subcategoryId) {
       try {
         if (!subcategoryId) {
-          console.log('subcategoryId boş, alt-alt kategoriler temizleniyor');
           $('#subsubcategorySelect').innerHTML = '<option value="">Tüm Alt-Alt Kategoriler</option>';
           return;
         }
         
-        console.log('=== ALT-ALT KATEGORİLER YÜKLENİYOR ===');
-        console.log('subcategoryId:', subcategoryId);
-        console.log('subcategoryId type:', typeof subcategoryId);
+        console.log('Alt-alt kategoriler yükleniyor, subcategory_id:', subcategoryId);
         
-        const url = `/tickets/subsubcategories?subcategory_id=${subcategoryId}`;
-        console.log('API URL:', url);
-        
-        const res = await fetch(url, { credentials: 'include' });
-        console.log('API Response status:', res.status);
-        console.log('API Response ok:', res.ok);
-        
+        const res = await fetch(`/tickets/subsubcategories?subcategory_id=${subcategoryId}`, { credentials: 'include' });
         if (res.ok) {
-          const data = await res.json();
-          console.log('API Response data:', data);
-          console.log('Data type:', typeof data);
-          console.log('Data length:', Array.isArray(data) ? data.length : 'Not an array');
+          subsubcategories = await res.json();
+          console.log('Alt-alt kategoriler yüklendi:', subsubcategories);
           
-          subsubcategories = data;
-          
-          if (Array.isArray(data) && data.length > 0) {
-            const options = '<option value="">Tüm Alt-Alt Kategoriler</option>' + 
-              data.map(s => `<option value="${s.id}">${escapeHtml(s.name)}</option>`).join('');
-            
-            console.log('Generated options HTML:', options);
-            $('#subsubcategorySelect').innerHTML = options;
-            
-            console.log('Alt-alt kategoriler başarıyla yüklendi:', data.length, 'adet');
-          } else {
-            console.log('Alt-alt kategori verisi boş veya array değil');
-            $('#subsubcategorySelect').innerHTML = '<option value="">Alt-alt kategori bulunamadı</option>';
-          }
+          $('#subsubcategorySelect').innerHTML = '<option value="">Tüm Alt-Alt Kategoriler</option>' + 
+            subsubcategories.map(s => `<option value="${s.id}">${escapeHtml(s.name)}</option>`).join('');
         } else {
-          const errorText = await res.text();
-          console.error('API Error Response:', errorText);
-          
-          try {
-            const errorJson = JSON.parse(errorText);
-            console.error('Parsed Error:', errorJson);
-          } catch (parseError) {
-            console.error('Error response parse edilemedi:', parseError);
-          }
-          
+          console.error('Alt-alt kategoriler yüklenemedi:', res.status);
           $('#subsubcategorySelect').innerHTML = '<option value="">Alt-alt kategoriler yüklenemedi</option>';
         }
       } catch (err) {
-        console.error('=== ALT-ALT KATEGORİLER YÜKLEME HATASI ===');
-        console.error('Error details:', err);
-        console.error('Error message:', err.message);
-        console.error('Error stack:', err.stack);
-        
+        console.error('Alt-alt kategoriler yüklenemedi:', err);
         $('#subsubcategorySelect').innerHTML = '<option value="">Hata oluştu</option>';
       }
     }
@@ -717,12 +610,12 @@
         $('#subsubcategorySelect').innerHTML = '<option value="">Tüm Alt-Alt Kategoriler</option>';
       }
       
-      await loadInbox(); // Arama ve filtreleme yapılınca listeyi yeniden yükle
+      await loadInbox(); // Arama ve filtreleme yapılınca listeyi yenileniyor
     });
 
     $('#subsubcategorySelect').addEventListener('change', async () => {
       console.log('Alt-alt kategori değişti, liste yenileniyor...');
-      await loadInbox(); // Arama ve filtreleme yapılınca listeyi yeniden yükle
+      await loadInbox(); // Arama ve filtreleme yapılınca listeyi yenileniyor
     });
   </script>
 </body>

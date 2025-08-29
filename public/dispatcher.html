@@ -31,7 +31,7 @@
     .ribbon{border-radius:20px; border:1px solid rgba(0,0,0,.05); background:linear-gradient(135deg, rgba(122,61,252,.12), rgba(0,229,255,.12));}
 
     /* CARDS */
-    .ticket-card{background:var(--card); border:1px solid #e9edf5; border-left:6px solid transparent; box-shadow:0 10px 30px rgba(2,6,23,.05); transition:transform .18s ease, box-shadow .18s ease}
+    .ticket-card{background:var(--card); border:1px solid #e9edf5; border-left:6px solid transparent; box-shadow:0 10px 30px rgba(2,6,23,.05); transition:transform .18s ease, box-shadow .18s ease; cursor: pointer;}
     .ticket-card:hover{transform:translateY(-3px); box-shadow:0 18px 40px rgba(2,6,23,.08)}
     .subject{color:var(--ink); font-weight:600}
     .excerpt{color:#475569}
@@ -55,13 +55,28 @@
     .search-wrap .bi{position:absolute; left:.75rem; top:50%; transform:translateY(-50%); color:#94a3b8}
     .search-wrap input{padding-left:2.2rem}
 
-    /* CHAT BUBBLES */
+    /* OFFCANVAS / CHAT */
+    .offcanvas{--bs-offcanvas-width:min(560px,100vw)}
+    .message-list{height: 56vh; overflow-y:auto; padding-right:.25rem}
     .bubble{max-width:78%; padding:.6rem .75rem; border-radius:16px; box-shadow:0 8px 20px rgba(2,6,23,.08)}
     .bubble-me{margin-left:auto; background:linear-gradient(135deg, var(--brand-1), var(--brand-2)); color:#fff}
     .bubble-other{background:#f8fafc; color:#0f172a; border:1px solid #e2e8f0}
+    .bubble small{opacity:.8}
+
+    /* BUTTONS */
+    .btn-primary{background:linear-gradient(135deg, var(--brand-1), var(--brand-2)); border:none; box-shadow:0 4px 12px rgba(122,61,252,.3); transition:all .2s ease}
+    .btn-primary:hover{transform:translateY(-1px); box-shadow:0 6px 16px rgba(122,61,252,.4)}
 
     /* UTIL */
     .border-subtle{border:1px solid #e9edf5}
+
+    /* Responsive tasarım için */
+    @media (max-width: 768px) {
+      .mobile-stack { flex-direction: column; }
+      .mobile-full { width: 100%; }
+      .mobile-text-center { text-align: center; }
+      .ribbon { padding: 1rem !important; }
+    }
   </style>
 </head>
 <body>
@@ -111,33 +126,6 @@
       </div>
     </div>
 
-    <!-- Chat Panel (inline) -->
-    <div id="chatPanel" class="card border-subtle mb-3" style="display: none;">
-      <div class="card-header bg-white border-subtle d-flex justify-content-between align-items-center">
-        <h6 class="mb-0" id="chatTitle">Talep Detayı</h6>
-        <button type="button" class="btn-close" id="closeChat"></button>
-      </div>
-      <div class="card-body p-0">
-        <div class="p-3 border-bottom border-subtle">
-          <h6 id="ticketSubject" class="mb-1">Konu</h6>
-          <div class="small text-muted mb-2" id="ticketDescription">Açıklama</div>
-          <div class="d-flex flex-wrap gap-2 align-items-center">
-            <span id="ticketStatus" class="status-pill s-new">Yeni</span>
-            <span id="ticketPriority" class="priority-chip p-medium">Orta</span>
-          </div>
-        </div>
-        <div id="messageList" class="p-3" style="height: 320px; overflow-y:auto;">
-          <div class="text-center text-muted"><small>Henüz mesaj yok</small></div>
-        </div>
-        <div class="p-3 border-top border-subtle">
-          <div class="input-group">
-            <input type="text" class="form-control" id="messageInput" placeholder="Mesaj yazın…" />
-            <button class="btn btn-primary" type="button" id="sendMessage"><i class="bi bi-send"></i></button>
-          </div>
-        </div>
-      </div>
-    </div>
-
     <!-- Ticket List -->
     <div id="list" class="row g-3"></div>
     <div id="empty" class="text-muted text-center d-none py-5">
@@ -145,6 +133,38 @@
       <div>Hiç talep bulunamadı.</div>
     </div>
   </main>
+
+  <!-- Chat Offcanvas -->
+  <div class="offcanvas offcanvas-end" tabindex="-1" id="chatOffcanvas" aria-labelledby="chatLabel">
+    <div class="offcanvas-header border-bottom">
+      <div>
+        <h5 id="chatLabel" class="mb-0">Talep Detayı</h5>
+        <div class="small text-muted" id="chatMeta"></div>
+      </div>
+      <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Kapat"></button>
+    </div>
+    <div class="offcanvas-body d-flex flex-column p-0">
+      <div class="p-3 border-bottom">
+        <h6 id="ticketSubject" class="mb-1">Konu</h6>
+        <div class="small text-muted mb-2" id="ticketDescription">Açıklama</div>
+        <div class="d-flex flex-wrap gap-2 align-items-center">
+          <span id="ticketStatus" class="status-pill s-new">Yeni</span>
+          <span id="ticketPriority" class="priority-chip p-medium">Orta</span>
+        </div>
+      </div>
+      <div id="messageList" class="message-list p-3">
+        <div class="text-center text-muted"><small>Mesaj yükleniyor…</small></div>
+      </div>
+      <div class="p-3 border-top">
+        <div class="input-group">
+          <input type="text" class="form-control" id="messageInput" placeholder="Mesaj yazın…" />
+          <button class="btn btn-primary" type="button" id="sendMessage">
+            <i class="bi bi-send me-1"></i> Gönder
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
 
   <!-- Assign Modal -->
   <div class="modal fade" id="assignModal" tabindex="-1" aria-hidden="true">
@@ -444,27 +464,53 @@
     }
     function showAssignWarn(msg){ const el = $('#assignWarn'); el.textContent = msg; el.classList.remove('d-none'); }
 
-    // Ticket selection + chat
+    // =============== CHAT ===============
     async function selectTicket(ticketId){
       try{
+        console.log('Talep seçiliyor:', ticketId);
+        
         const ticketRes = await fetch(`/tickets/${ticketId}`, { credentials:'include' });
         if (!ticketRes.ok) throw new Error('Talep bilgileri alınamadı');
         selectedTicket = await ticketRes.json();
+        
         const messagesRes = await fetch(`/tickets/${ticketId}/messages`, { credentials:'include' });
         messages = messagesRes.ok ? await messagesRes.json() : [];
+        
         updateChatUI();
-        const chatPanel = $('#chatPanel'); chatPanel.style.display='block';
-        setTimeout(()=>{ const ml = $('#messageList'); ml.scrollTop = ml.scrollHeight; }, 100);
-      }catch(err){ alert('Talep açılamadı: '+err.message); }
+        
+        // Offcanvas'ı göster
+        bootstrap.Offcanvas.getOrCreateInstance($('#chatOffcanvas')).show();
+        
+        // Mesaj listesini scroll et
+        setTimeout(() => {
+          const messageList = $('#messageList');
+          messageList.scrollTop = messageList.scrollHeight;
+        }, 100);
+        
+      }catch(err){ 
+        console.error('Talep seçme hatası:', err);
+        alert('Talep açılamadı: '+err.message); 
+      }
     }
 
     function updateChatUI(){
       if (!selectedTicket) return;
-      $('#chatTitle').textContent = `#${selectedTicket.id} - ${selectedTicket.subject || 'Konu yok'}`;
+      
+      $('#chatLabel').textContent = `#${selectedTicket.id} - ${selectedTicket.subject || 'Konu yok'}`;
+      $('#chatMeta').textContent = new Date(selectedTicket.created_at).toLocaleString('tr-TR');
       $('#ticketSubject').textContent = selectedTicket.subject || 'Konu yok';
       $('#ticketDescription').textContent = selectedTicket.description || 'Açıklama yok';
-      const st = $('#ticketStatus'); st.textContent = statusText(selectedTicket.status); st.className = `status-pill ${statusClass(selectedTicket.status)}`;
-      const pr = $('#ticketPriority'); const p = selectedTicket.priority||'MEDIUM'; pr.textContent = p==='HIGH'?'Yüksek':p==='LOW'?'Düşük':'Orta'; pr.className = `priority-chip ${p==='HIGH'?'p-high':p==='LOW'?'p-low':'p-medium'}`;
+      
+      // Status ve priority sınıflarını güncelle
+      const statusEl = $('#ticketStatus');
+      statusEl.textContent = statusText(selectedTicket.status);
+      statusEl.className = `status-pill ${statusClass(selectedTicket.status)}`;
+      
+      const priorityEl = $('#ticketPriority');
+      const p = selectedTicket.priority||'MEDIUM';
+      priorityEl.textContent = p==='HIGH'?'Yüksek':p==='LOW'?'Düşük':'Orta';
+      priorityEl.className = `priority-chip ${p==='HIGH'?'p-high':p==='LOW'?'p-low':'p-medium'}`;
+      
       renderMessages();
     }
 
@@ -501,7 +547,12 @@
       }catch(err){ alert('Mesaj gönderilemedi: '+err.message); }
     }
 
-    $('#closeChat').addEventListener('click', ()=>{ $('#chatPanel').style.display='none'; selectedTicket=null; messages=[]; });
+    // Edit modal functions (placeholder)
+    async function openEditModal(ticketId) {
+      // Bu fonksiyon edit modal'ı açmak için kullanılacak
+      console.log('Edit modal açılıyor, ticket ID:', ticketId);
+      // TODO: Edit modal implementation
+    }
 
   </script>
 </body>
