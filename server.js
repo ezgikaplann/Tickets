@@ -12,6 +12,9 @@ const http = require('http');
 const { Server } = require('socket.io');
 const cookie = require('cookie');
 
+// NEW: Email servisini import et
+const EmailService = require('./email-service');
+
 const authRoutes    = require('./routes/auth');
 const ticketRoutes  = require('./routes/tickets');
 const messageRoutes = require('./routes/messages');
@@ -97,5 +100,18 @@ io.on('connection', (socket) => {
   });
 });
 
+// NEW: Email servisini başlat
+let emailService;
+try {
+  emailService = new EmailService();
+  console.log('Email servisi başarıyla başlatıldı');
+} catch (err) {
+  console.error('Email servisi başlatılamadı:', err.message);
+  console.log('Email-to-ticket özelliği devre dışı');
+}
+
 const port = process.env.PORT || 4000;
-server.listen(port, () => console.log(`API listening on :${port}`));
+server.listen(port, () => {
+  console.log(`API listening on :${port}`);
+  console.log(`Email-to-ticket sistemi: ${emailService ? 'Aktif' : 'Devre dışı'}`);
+});

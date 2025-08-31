@@ -469,7 +469,7 @@
       
       if (categoryId) {
         console.log('Alt kategoriler yükleniyor...');
-        await loadSubcategories(categoryId);
+      await loadSubcategories(categoryId);
       } else {
         console.log('Ana kategori seçimi temizlendi, alt kategoriler temizleniyor...');
         $('#subcategorySelect').innerHTML = '<option value="">Tüm Alt Kategoriler</option>';
@@ -485,7 +485,7 @@
       
       if (subcategoryId) {
         console.log('Alt-alt kategoriler yükleniyor...');
-        await loadSubsubcategories(subcategoryId);
+      await loadSubsubcategories(subcategoryId);
       } else {
         console.log('Alt kategori seçimi temizlendi, alt-alt kategoriler temizleniyor...');
         $('#subsubcategorySelect').innerHTML = '<option value="">Tüm Alt-Alt Kategoriler</option>';
