@@ -36,6 +36,16 @@
     .subject{color:var(--ink); font-weight:600}
     .excerpt{color:#475569}
 
+    /* BUTTON CONTAINER STYLES */
+    .button-container{display:flex; flex-direction:column; align-items:flex-end; gap:8px; min-width:200px; flex-shrink:0}
+    .button-row{display:flex; gap:8px; flex-wrap:nowrap; align-items:center}
+    .priority-select{min-width:120px; flex-shrink:0}
+    
+    /* TICKET CONTENT STYLES */
+    .ticket-content{flex:1; min-width:0; overflow:hidden}
+    .ticket-content .subject{word-break:break-word; hyphens:auto}
+    .ticket-content .excerpt{word-break:break-word; hyphens:auto; line-height:1.4}
+
     /* STATUS + PRIORITY */
     .status-pill{font-weight:600; padding:.35rem .6rem; border-radius:999px; border:1px solid #e2e8f0}
     .s-new{background:#eef2ff; color:#4338ca; border-color:#c7d2fe}
@@ -404,7 +414,7 @@
       <div class="col-12">
         <div class="ticket-card p-3 rounded-3" style="border-left-color:${border}" role="button">
           <div class="d-flex justify-content-between align-items-start gap-3">
-            <div class="flex-grow-1" onclick="selectTicket(${Number(t.id)})">
+            <div class="ticket-content" onclick="selectTicket(${Number(t.id)})">
               <div class="d-flex justify-content-between align-items-start">
                 <div class="subject">${escapeHtml(t.subject||'(Konu yok)')}</div>
                 <span class="status-pill ${statusClass(t.status)}">${statusText(t.status)}</span>
@@ -413,11 +423,13 @@
               <div class="excerpt small mt-2">${escapeHtml((t.description||'').slice(0,200))}</div>
               ${t.assignee_name ? `<div class="small mt-2 text-muted"><i class="bi bi-people"></i> ${escapeHtml(t.assignee_name)}</div>` : ''}
             </div>
-            <div class="text-end">
-              ${assignBtn}
-              ${cancelBtn}
-              ${editBtn}
-              ${deleteBtn}
+            <div class="button-container">
+              <div class="button-row">
+                ${assignBtn}
+                ${cancelBtn}
+                ${editBtn}
+                ${deleteBtn}
+              </div>
               ${prioritySelect}
             </div>
           </div>
@@ -547,12 +559,76 @@
       }catch(err){ alert('Mesaj gönderilemedi: '+err.message); }
     }
 
-    // Edit modal functions (placeholder)
+    // Edit modal functions
     async function openEditModal(ticketId) {
-      // Bu fonksiyon edit modal'ı açmak için kullanılacak
-      console.log('Edit modal açılıyor, ticket ID:', ticketId);
-      // TODO: Edit modal implementation
+      try {
+        console.log('Edit modal açılıyor, ticket ID:', ticketId);
+        
+        // Talep bilgilerini al
+        const res = await fetch(`/tickets/${ticketId}`, { credentials: 'include' });
+        if (!res.ok) throw new Error('Talep bilgileri alınamadı');
+        
+        const ticket = await res.json();
+        
+        // Modal alanlarını doldur
+        $('#editTicketId').value = ticket.id;
+        $('#editSubject').value = ticket.subject || '';
+        $('#editDescription').value = ticket.description || '';
+        $('#editPriority').value = ticket.priority || 'MEDIUM';
+        
+        // Modal'ı göster
+        const editModal = new bootstrap.Modal($('#editModal'));
+        editModal.show();
+        
+      } catch (err) {
+        console.error('Edit modal açma hatası:', err);
+        alert('Talep bilgileri yüklenemedi: ' + err.message);
+      }
     }
+
+    // Edit kaydetme işlemi
+    $('#btnSaveEdit').addEventListener('click', async () => {
+      const ticketId = $('#editTicketId').value;
+      const subject = $('#editSubject').value.trim();
+      const description = $('#editDescription').value.trim();
+      const priority = $('#editPriority').value;
+      
+      if (!subject) {
+        alert('Konu alanı zorunludur!');
+        return;
+      }
+      
+      try {
+        const res = await fetch(`/tickets/${ticketId}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          credentials: 'include',
+          body: JSON.stringify({
+            subject,
+            description,
+            priority
+          })
+        });
+        
+        if (!res.ok) {
+          const err = await res.json().catch(() => ({}));
+          throw new Error(err.error || `HTTP ${res.status}`);
+        }
+        
+        // Modal'ı kapat
+        const editModal = bootstrap.Modal.getInstance($('#editModal'));
+        editModal.hide();
+        
+        // Listeyi yenile
+        await loadInbox();
+        
+        alert('Talep başarıyla güncellendi!');
+        
+      } catch (err) {
+        console.error('Talep güncelleme hatası:', err);
+        alert('Talep güncellenemedi: ' + err.message);
+      }
+    });
 
   </script>
 </body>
