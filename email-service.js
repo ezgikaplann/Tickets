@@ -49,6 +49,7 @@ class EmailService {
     async checkNewEmails() {
         try {
             console.log('Email kontrol ediliyor...');
+
             const imap = require('imap');
             const imapConnection = new imap(this.imapConfig);
 
@@ -57,17 +58,16 @@ class EmailService {
                 imapConnection.openBox('INBOX', false, (err, box) => {
                     if (err) {
                         console.error('INBOX açma hatası:', err);
-
                         imapConnection.end();
                         return;
                     }
 
-                    // Son 10 dakikada gelen emailleri ara
-                    const tenMinutesAgo = new Date();
-                    tenMinutesAgo.setMinutes(tenMinutesAgo.getMinutes() - 10);
+                    // Son 5 dakikada gelen emailleri ara
+                    const fiveMinutesAgo = new Date();
+                    fiveMinutesAgo.setMinutes(fiveMinutesAgo.getMinutes() - 5);
 
                     imapConnection.search([
-                        ['SINCE', tenMinutesAgo],
+                        ['SINCE', fiveMinutesAgo],
                         ['UNSEEN']
                     ], (err, results) => {
                         if (err) {
@@ -84,30 +84,62 @@ class EmailService {
 
                         console.log(`${results.length} yeni email bulundu`);
 
-                        const fetch = imapConnection.fetch(results, { bodies: '' });
-                        fetch.on('message', (msg, seqno) => {
-                            let buffer = '';
-                            msg.on('body', (stream, info) => {
-                                stream.on('data', (chunk) => {
-                                    buffer += chunk.toString('utf8');
+                        // Her email'i ayrı ayrı işle ve okundu olarak işaretle
+                        let processedCount = 0;
+
+                        results.forEach((uid) => {
+                            const fetch = imapConnection.fetch(uid, { bodies: '' });
+
+                            fetch.on('message', (msg, seqno) => {
+                                let buffer = '';
+                                msg.on('body', (stream, info) => {
+                                    stream.on('data', (chunk) => {
+                                        buffer += chunk.toString('utf8');
+                                    });
+                                });
+
+                                msg.once('end', async () => {
+                                    try {
+                                        await this.processEmail(buffer);
+
+                                        // Email'i okundu olarak işaretle (IMAP'de)
+                                        imapConnection.addFlags(uid, '\\Seen', (err) => {
+                                            if (err) {
+                                                console.error(`Email işaretleme hatası (UID: ${uid}):`, err);
+                                            } else {
+                                                console.log(`Email okundu olarak işaretlendi (UID: ${uid})`);
+                                            }
+
+                                            processedCount++;
+                                            if (processedCount === results.length) {
+                                                // Tüm email'ler işlendikten sonra bağlantıyı kapat
+                                                setTimeout(() => {
+                                                    imapConnection.end();
+                                                }, 1000);
+                                            }
+                                        });
+
+                                    } catch (err) {
+                                        console.error('Email işleme hatası:', err);
+                                        processedCount++;
+                                        if (processedCount === results.length) {
+                                            setTimeout(() => {
+                                                imapConnection.end();
+                                            }, 1000);
+                                        }
+                                    }
                                 });
                             });
 
-                            msg.once('end', async () => {
-                                try {
-                                    await this.processEmail(buffer);
-                                } catch (err) {
-                                    console.error('Email işleme hatası:', err);
+                            fetch.once('error', (err) => {
+                                console.error('Fetch error:', err);
+                                processedCount++;
+                                if (processedCount === results.length) {
+                                    setTimeout(() => {
+                                        imapConnection.end();
+                                    }, 1000);
                                 }
                             });
-                        });
-
-                        fetch.once('error', (err) => {
-                            console.error('Fetch error:', err);
-                        });
-
-                        fetch.once('end', () => {
-                            imapConnection.end();
                         });
                     });
                 });
@@ -138,16 +170,34 @@ class EmailService {
             const text = parsed.text || parsed.html || '';
             const date = parsed.date || new Date();
 
+            // Bu email daha önce işlendi mi kontrol et
+            if (parsed.messageId) {
+                const [existingEmails] = await pool.execute(
+                    'SELECT * FROM emails WHERE message_id = ?',
+                    [parsed.messageId]
+                );
+
+                if (existingEmails.length > 0) {
+                    console.log(`Email zaten işlenmiş: ${parsed.messageId}`);
+                    return;
+                }
+            }
+
             // Email adresinden kullanıcı bilgilerini al veya oluştur
             const user = await this.getOrCreateUserFromEmail(from);
 
             // Ticket oluştur
             const ticket = await this.createTicketFromEmail(user, subject, text, date);
 
-            console.log(`Email'den ticket oluşturuldu: #${ticket.id}`);
+            // Email'i veritabanına kaydet
+            if (parsed.messageId) {
+                await pool.execute(
+                    'INSERT INTO emails (message_id, from_email, subject, content, processed, ticket_id, received_at) VALUES (?, ?, ?, ?, TRUE, ?, NOW())',
+                    [parsed.messageId, from, subject, text, ticket.id]
+                );
+            }
 
-            // Email'i okundu olarak işaretle
-            await this.markEmailAsRead(parsed.messageId);
+            console.log(`Email'den ticket oluşturuldu: #${ticket.id}`);
 
         } catch (err) {
             console.error('Email işleme hatası:', err);
