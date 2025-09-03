@@ -39,7 +39,7 @@ class EmailService {
         // Her 5 dakikada bir email kontrol et
         setInterval(() => {
             this.checkNewEmails();
-        }, 300000);
+        }, 60000);
 
         // İlk kontrolü hemen yap
         this.checkNewEmails();
