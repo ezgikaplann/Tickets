@@ -22,7 +22,7 @@ async function createTables() {
       CREATE TABLE IF NOT EXISTS users (
         id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
         email VARCHAR(255) UNIQUE NOT NULL,
-        password_hash VARCHAR(255) DEFAULT NULL, // Bu satırı ekleyin
+        password_hash VARCHAR(255) DEFAULT NULL, 
         full_name VARCHAR(255) NOT NULL,
         role ENUM('end_user', 'dispatcher', 'admin') DEFAULT 'end_user',
         created_at DATETIME DEFAULT CURRENT_TIMESTAMP

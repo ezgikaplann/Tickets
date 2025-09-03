@@ -238,19 +238,20 @@ class EmailService {
 
     // Email'den ticket oluştur
     async createTicketFromEmail(user, subject, description, date) {
-
+        console.log("elmalı turta", user);
         try {
             const [result] = await pool.execute(
-                'INSERT INTO tickets (subject, description, created_by, status, priority, created_at) VALUES (?, ?, ?, ?, ?, ?)',
-                [subject, description, user.id, 'NEW', 'MEDIUM', date]
+                'INSERT INTO tickets (user_id, subject, description, created_by, status, priority, created_at) VALUES (?, ?, ?, ?, ?, ?, ?)',
+                [user.id, subject, description, user.id, 'open', 'MEDIUM', date]
             );
 
             return {
+                createdUser: user.id,
                 id: result.insertId,
                 subject,
                 description,
-                user_id: user.id,
-                status: 'NEW',
+                user: user.id,
+                status: 'open',
                 priority: 'MEDIUM'
             };
 
